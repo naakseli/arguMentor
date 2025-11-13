@@ -1,14 +1,7 @@
-import type {
-	Debate,
-	DebateCreatedEvent,
-	DebateInfoEvent,
-	DebateJoinedEvent,
-	ErrorEvent,
-	MessageSentEvent,
-} from '@argumentor/shared'
+import type { Debate } from '@argumentor/shared'
 import { useState } from 'react'
 import { useSocket } from '../../../providers/SocketProvider'
-import { ensureSocketConnected } from '../../../services/socketClient'
+import { debateSocketService } from '../../../services/debateSocketService'
 
 interface UseDebateResult {
 	createDebate: (topic: string, topicSideA: string, topicSideB: string) => Promise<string>
@@ -34,19 +27,7 @@ export const useDebate = (): UseDebateResult => {
 		setError(null)
 
 		try {
-			await ensureSocketConnected(socket)
-
-			const roomCode = await new Promise<string>((resolve, reject) => {
-				socket.once('debate_created', (payload: DebateCreatedEvent) => resolve(payload.roomCode))
-				socket.once('error', (payload: ErrorEvent) => reject(new Error(payload.message)))
-
-				socket.emit('create_debate', {
-					topic,
-					topicSideA,
-					topicSideB,
-				})
-			})
-
+			const roomCode = await debateSocketService.createDebate(socket, topic, topicSideA, topicSideB)
 			return roomCode
 		} catch (caughtError) {
 			const message =
@@ -66,19 +47,7 @@ export const useDebate = (): UseDebateResult => {
 		setError(null)
 
 		try {
-			await ensureSocketConnected(socket)
-
-			const result = await new Promise<string>((resolve, reject) => {
-				socket.once('debate_joined', (payload: DebateJoinedEvent) =>
-					resolve(payload.debate.roomCode)
-				)
-				socket.once('error', (payload: ErrorEvent) => reject(new Error(payload.message)))
-
-				socket.emit('join_debate', {
-					roomCode: roomCode.trim().toUpperCase(),
-				})
-			})
-
+			const result = await debateSocketService.joinDebate(socket, roomCode)
 			return result
 		} catch (caughtError) {
 			const message =
@@ -95,14 +64,7 @@ export const useDebate = (): UseDebateResult => {
 
 	const getDebateInfo = async (roomCode: string) => {
 		try {
-			await ensureSocketConnected(socket)
-
-			const debate = await new Promise<Debate>((resolve, reject) => {
-				socket.once('debate_info', (payload: DebateInfoEvent) => resolve(payload.debate))
-				socket.once('error', (payload: ErrorEvent) => reject(new Error(payload.message)))
-				socket.emit('get_debate_info', { roomCode })
-			})
-
+			const debate = await debateSocketService.getDebateInfo(socket, roomCode)
 			return debate
 		} catch (caughtError) {
 			const message =
@@ -120,14 +82,7 @@ export const useDebate = (): UseDebateResult => {
 		setError(null)
 
 		try {
-			await ensureSocketConnected(socket)
-
-			await new Promise<void>((resolve, reject) => {
-				socket.once('message_sent', (payload: MessageSentEvent) => resolve())
-				socket.once('error', (payload: ErrorEvent) => reject(new Error(payload.message)))
-
-				socket.emit('send_message', { content: content.trim() })
-			})
+			await debateSocketService.sendMessage(socket, content)
 		} catch (caughtError) {
 			const message =
 				caughtError instanceof Error && caughtError.message

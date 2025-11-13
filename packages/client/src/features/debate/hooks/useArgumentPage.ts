@@ -1,17 +1,8 @@
-import type {
-	ArgumentsUpdatedEvent,
-	Debate,
-	DebateEndedEvent,
-	DebateJoinedEvent,
-	DebateStartedEvent,
-	ErrorEvent,
-	EvaluationReadyEvent,
-	NewMessageEvent,
-} from '@argumentor/shared'
+import type { Debate } from '@argumentor/shared'
 import { DebateSide, DebateStatus } from '@argumentor/shared'
 import { useEffect, useState } from 'react'
 import { useSocket } from '../../../providers/SocketProvider'
-import { ensureSocketConnected } from '../../../services/socketClient'
+import { debateSocketService } from '../../../services/debateSocketService'
 import { useDebate } from './useDebate'
 
 interface UseArgumentPageResult {
@@ -43,7 +34,6 @@ export const useArgumentPage = (roomCode: string | undefined): UseArgumentPageRe
 			setError(null)
 
 			try {
-				await ensureSocketConnected(socket)
 				const initialDebate = await getDebateInfo(roomCode)
 
 				if (isMounted) {
@@ -67,111 +57,92 @@ export const useArgumentPage = (roomCode: string | undefined): UseArgumentPageRe
 
 		fetchInitialDebate()
 
-		// Set up socket event listeners
-		const handleDebateJoined = (payload: DebateJoinedEvent) => {
-			if (isMounted && payload.debate.roomCode === roomCode) {
-				console.log('debate_joined', payload)
-				setUserSide(payload.side)
-				setDebate(prevDebate => {
-					if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
-					return {
-						...payload.debate,
-					}
-				})
-			}
-		}
-
-		const handleDebateStarted = (payload: DebateStartedEvent) => {
-			if (isMounted && payload.debate.roomCode === roomCode) {
-				setDebate(prevDebate => {
-					if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
-					return {
-						...prevDebate,
-						status: payload.debate.status,
-						sideAJoined: payload.debate.sideAJoined,
-						sideBJoined: payload.debate.sideBJoined,
-					}
-				})
-			}
-		}
-
-		const handleArgumentsUpdated = (payload: ArgumentsUpdatedEvent) => {
-			if (isMounted) {
-				setDebate(prevDebate => {
-					if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
-					return {
-						...prevDebate,
-						argumentsRemainingA: payload.argumentsRemainingA,
-						argumentsRemainingB: payload.argumentsRemainingB,
-					}
-				})
-			}
-		}
-
-		const handleNewMessage = (payload: NewMessageEvent) => {
-			if (isMounted) {
-				setDebate(prevDebate => {
-					if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
-					return {
-						...prevDebate,
-						messages: [...prevDebate.messages, payload],
-					}
-				})
-			}
-		}
-
-		const handleDebateEnded = (payload: DebateEndedEvent) => {
-			if (isMounted && payload.debate.roomCode === roomCode) {
-				setDebate(prevDebate => {
-					if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
-					return {
-						...prevDebate,
-						status: payload.debate.status,
-					}
-				})
-			}
-		}
-
-		const handleEvaluationReady = (payload: EvaluationReadyEvent) => {
-			if (isMounted) {
-				setDebate(prevDebate => {
-					if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
-					return {
-						...prevDebate,
-						evaluation: payload.evaluation,
-						status: payload.evaluation ? DebateStatus.EVALUATED : prevDebate.status,
-					}
-				})
-			}
-		}
-
-		const handleError = (payload: ErrorEvent) => {
-			if (isMounted) {
-				setError(payload.message)
-			}
-		}
-
-		// Register all listeners
-		socket.on('debate_joined', handleDebateJoined)
-		socket.on('debate_started', handleDebateStarted)
-		socket.on('arguments_updated', handleArgumentsUpdated)
-		socket.on('new_message', handleNewMessage)
-		socket.on('debate_ended', handleDebateEnded)
-		socket.on('evaluation_ready', handleEvaluationReady)
-		socket.on('error', handleError)
+		// Set up socket event listeners using the service
+		const unsubscribe = debateSocketService.subscribeToDebateEvents(socket, roomCode, {
+			onDebateJoined: payload => {
+				if (isMounted) {
+					console.log('debate_joined', payload)
+					setUserSide(payload.side)
+					setDebate(prevDebate => {
+						if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
+						return {
+							...payload.debate,
+						}
+					})
+				}
+			},
+			onDebateStarted: payload => {
+				if (isMounted) {
+					setDebate(prevDebate => {
+						if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
+						return {
+							...prevDebate,
+							status: payload.debate.status,
+							sideAJoined: payload.debate.sideAJoined,
+							sideBJoined: payload.debate.sideBJoined,
+						}
+					})
+				}
+			},
+			onArgumentsUpdated: payload => {
+				if (isMounted) {
+					setDebate(prevDebate => {
+						if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
+						return {
+							...prevDebate,
+							argumentsRemainingA: payload.argumentsRemainingA,
+							argumentsRemainingB: payload.argumentsRemainingB,
+						}
+					})
+				}
+			},
+			onNewMessage: payload => {
+				if (isMounted) {
+					setDebate(prevDebate => {
+						if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
+						return {
+							...prevDebate,
+							messages: [...prevDebate.messages, payload],
+						}
+					})
+				}
+			},
+			onDebateEnded: payload => {
+				if (isMounted) {
+					setDebate(prevDebate => {
+						if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
+						return {
+							...prevDebate,
+							status: payload.debate.status,
+						}
+					})
+				}
+			},
+			onEvaluationReady: payload => {
+				if (isMounted) {
+					setDebate(prevDebate => {
+						if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
+						return {
+							...prevDebate,
+							evaluation: payload.evaluation,
+							status: payload.evaluation ? DebateStatus.EVALUATED : prevDebate.status,
+						}
+					})
+				}
+			},
+			onError: payload => {
+				if (isMounted) {
+					setError(payload.message)
+				}
+			},
+		})
 
 		// Cleanup function
 		return () => {
 			isMounted = false
-			socket.off('debate_joined', handleDebateJoined)
-			socket.off('debate_started', handleDebateStarted)
-			socket.off('arguments_updated', handleArgumentsUpdated)
-			socket.off('new_message', handleNewMessage)
-			socket.off('debate_ended', handleDebateEnded)
-			socket.off('evaluation_ready', handleEvaluationReady)
-			socket.off('error', handleError)
+			unsubscribe()
 		}
-	}, [roomCode])
+	}, [roomCode, socket, getDebateInfo])
 
 	return {
 		debate,
