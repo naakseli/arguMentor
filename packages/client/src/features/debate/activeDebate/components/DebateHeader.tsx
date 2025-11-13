@@ -22,26 +22,21 @@ const DebateHeader = ({ debate, userSide }: DebateHeaderProps) => {
 		}
 	}
 
-	const getUserSideLabel = () => {
-		if (!userSide) return null
-		return userSide === DebateSide.SIDE_A ? debate.topicSideA : debate.topicSideB
+	const sideAVars = {
+		topic: debate.topicSideA,
+		argumentsRemaining: debate.argumentsRemainingA,
+		side: DebateSide.SIDE_A,
+		color: 'blue',
+	}
+	const sideBVars = {
+		topic: debate.topicSideB,
+		argumentsRemaining: debate.argumentsRemainingB,
+		side: DebateSide.SIDE_B,
+		color: 'green',
 	}
 
-	const getUserArgumentsRemaining = () => {
-		if (!userSide) return null
-		return userSide === DebateSide.SIDE_A ? debate.argumentsRemainingA : debate.argumentsRemainingB
-	}
-
-	const getOpponentSide = () => {
-		if (!userSide) return null
-		return userSide === DebateSide.SIDE_A ? DebateSide.SIDE_B : DebateSide.SIDE_A
-	}
-
-	const getOpponentSideLabel = () => {
-		const opponentSide = getOpponentSide()
-		if (!opponentSide) return null
-		return opponentSide === DebateSide.SIDE_A ? debate.topicSideA : debate.topicSideB
-	}
+	const userSideVars = userSide === DebateSide.SIDE_A ? sideAVars : sideBVars
+	const opponentSideVars = userSide === DebateSide.SIDE_A ? sideBVars : sideAVars
 
 	return (
 		<Card withBorder radius='md' p='md'>
@@ -49,28 +44,28 @@ const DebateHeader = ({ debate, userSide }: DebateHeaderProps) => {
 				<Group justify='space-between' align='flex-start'>
 					<Box style={{ flex: 1 }}>
 						<Title order={3} mb='xs'>
-							{debate.topic}
+							{userSideVars.topic}
 						</Title>
 						{userSide && (
 							<Alert
 								icon={<IconInfoCircle size={16} />}
-								color={userSide === DebateSide.SIDE_A ? 'blue' : 'green'}
+								color={userSideVars.color}
 								variant='light'
 								mb='xs'
 							>
 								<Text size='sm' fw={600}>
 									Sinun tehtäväsi: Puolusta{' '}
-									<Text span c={userSide === DebateSide.SIDE_A ? 'blue' : 'green'}>
-										{getUserSideLabel()}
+									<Text span c={userSideVars.color}>
+										{userSideVars.topic}
 									</Text>
 								</Text>
 							</Alert>
 						)}
-						{getOpponentSideLabel() && (
+						{opponentSideVars.topic && (
 							<Text size='sm' c='dimmed'>
 								Vastustajasi puolustaa:{' '}
 								<Text span fw={600}>
-									{getOpponentSideLabel()}
+									{opponentSideVars.topic}
 								</Text>
 							</Text>
 						)}
@@ -81,24 +76,12 @@ const DebateHeader = ({ debate, userSide }: DebateHeaderProps) => {
 				{/* Arguments remaining */}
 				{userSide && (
 					<Group gap='md'>
-						<Badge
-							variant='light'
-							color={userSide === DebateSide.SIDE_A ? 'blue' : 'green'}
-							size='lg'
-						>
-							Sinulla: {getUserArgumentsRemaining()} argumenttia jäljellä
+						<Badge variant='light' color={userSideVars.color} size='lg'>
+							Sinulla: {userSideVars.argumentsRemaining} argumenttia jäljellä
 						</Badge>
-						{getOpponentSide() && (
-							<Badge
-								variant='light'
-								color={getOpponentSide() === DebateSide.SIDE_A ? 'blue' : 'green'}
-								size='lg'
-							>
-								Vastustaja:{' '}
-								{getOpponentSide() === DebateSide.SIDE_A
-									? debate.argumentsRemainingA
-									: debate.argumentsRemainingB}{' '}
-								argumenttia jäljellä
+						{opponentSideVars.topic && (
+							<Badge variant='light' color={opponentSideVars.color} size='lg'>
+								Vastustaja: {opponentSideVars.argumentsRemaining} argumenttia jäljellä
 							</Badge>
 						)}
 					</Group>
