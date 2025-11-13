@@ -17,12 +17,7 @@ const MessageList = ({ debate, scrollTrigger }: MessageListProps) => {
 	}, [debate.messages, scrollTrigger])
 
 	return (
-		<Card
-			withBorder
-			radius='md'
-			p='md'
-			style={{ height: '400px', display: 'flex', flexDirection: 'column' }}
-		>
+		<Card withBorder radius='md' p='md'>
 			<ScrollArea style={{ flex: 1 }} offsetScrollbars>
 				<Stack gap='sm' p='xs'>
 					{debate.messages.length === 0 ? (
