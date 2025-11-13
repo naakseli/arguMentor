@@ -19,17 +19,15 @@ const DebateView = ({ debate, userSide }: DebateViewProps) => {
 	const isDebateEnded =
 		debate.status === DebateStatus.ENDED || debate.status === DebateStatus.EVALUATED
 
-	const handleMessageSent = () => {
-		setScrollTrigger(prev => prev + 1)
-	}
+	const handleMessageSent = () => setScrollTrigger(prev => prev + 1)
 
 	return (
 		<Stack gap='md'>
 			<DebateHeader debate={debate} userSide={userSide} />
 			<MessageList debate={debate} scrollTrigger={scrollTrigger} />
 			{!isDebateEnded && <MessageInput onMessageSent={handleMessageSent} />}
-			{debate.evaluation && <EvaluationDisplay evaluation={debate.evaluation} />}
 			{isDebateEnded && !debate.evaluation && <DebateEndedAlert />}
+			{debate.evaluation && <EvaluationDisplay evaluation={debate.evaluation} />}
 		</Stack>
 	)
 }
