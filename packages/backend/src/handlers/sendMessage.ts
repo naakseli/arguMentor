@@ -1,0 +1,116 @@
+import type { SendMessagePayload, ServerToClientEvents } from '@argumentor/shared'
+import { DebateSide, DebateStatus } from '@argumentor/shared'
+import { randomUUID } from 'crypto'
+import * as debateService from '../services/debateService.js'
+import type { DebateSocket } from '../types/socket.js'
+import { emitSocketError, handleSocketHandlerError } from '../utils/socketError.js'
+
+const VALID_SIDES = new Set<DebateSide>([DebateSide.SIDE_A, DebateSide.SIDE_B])
+
+export const handleSendMessage = async (
+	socket: DebateSocket,
+	payload: SendMessagePayload
+): Promise<void> => {
+	const roomCode = socket.data.roomCode
+	const side = socket.data.side
+
+	if (!roomCode || !side) {
+		emitSocketError(socket, 'NOT_IN_DEBATE', 'You must join a debate before sending messages')
+		return
+	}
+
+	const content = payload?.content?.trim()
+	if (!content) {
+		emitSocketError(socket, 'INVALID_MESSAGE', 'Message content is required and cannot be empty')
+		return
+	}
+
+	try {
+		const debate = await debateService.getDebate(roomCode)
+
+		if (!debate) {
+			emitSocketError(socket, 'DEBATE_NOT_FOUND', 'Debate room not found')
+			return
+		}
+
+		if (debate.status !== DebateStatus.ACTIVE) {
+			emitSocketError(socket, 'DEBATE_NOT_ACTIVE', 'Debate is not active')
+			return
+		}
+
+		if (!VALID_SIDES.has(side)) {
+			emitSocketError(socket, 'INVALID_SIDE', 'Invalid debate side')
+			return
+		}
+
+		const isSideA = side === DebateSide.SIDE_A
+		const argumentsRemaining = isSideA ? debate.argumentsRemainingA : debate.argumentsRemainingB
+
+		if (argumentsRemaining <= 0) {
+			emitSocketError(socket, 'NO_ARGUMENTS_LEFT', 'You have no arguments remaining')
+			return
+		}
+
+		const timestamp = new Date().toISOString()
+
+		const message = {
+			id: randomUUID(),
+			side,
+			content,
+			timestamp,
+		}
+
+		debate.messages.push(message)
+
+		if (isSideA) {
+			debate.argumentsRemainingA -= 1
+		} else {
+			debate.argumentsRemainingB -= 1
+		}
+
+		const debateJustEnded = debate.argumentsRemainingA === 0 && debate.argumentsRemainingB === 0
+
+		if (debateJustEnded) {
+			debate.status = DebateStatus.ENDED
+		}
+
+		await debateService.saveDebate(debate)
+
+		socket.emit('message_sent', {
+			messageId: message.id,
+			timestamp,
+		})
+
+		const broadcast = <E extends keyof ServerToClientEvents>(
+			event: E,
+			...args: Parameters<ServerToClientEvents[E]>
+		): void => {
+			socket.emit(event, ...args)
+			socket.to(roomCode).emit(event, ...args)
+		}
+
+		broadcast('new_message', {
+			id: message.id,
+			side: message.side,
+			content: message.content,
+			timestamp: message.timestamp,
+		})
+
+		broadcast('arguments_updated', {
+			argumentsRemainingA: debate.argumentsRemainingA,
+			argumentsRemainingB: debate.argumentsRemainingB,
+		})
+
+		if (debateJustEnded) {
+			broadcast('debate_ended', { debate })
+		}
+	} catch (error) {
+		handleSocketHandlerError(
+			socket,
+			'SEND_MESSAGE_ERROR',
+			'Failed to send message',
+			error,
+			'Error sending message'
+		)
+	}
+}

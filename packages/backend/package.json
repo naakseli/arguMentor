@@ -1,0 +1,23 @@
+{
+	"name": "@argumentor/backend",
+	"scripts": {
+		"dev": "tsx watch --env-file=.env --inspect src/server.ts",
+		"test": "vitest",
+		"docker:up": "docker-compose up -d",
+		"docker:down": "docker-compose down",
+		"docker:restart": "docker-compose restart"
+	},
+	"dependencies": {
+		"@argumentor/shared": "workspace:*",
+		"ioredis": "^5.3.2",
+		"socket.io": "^4.8.1",
+		"typescript": "~5.9.3"
+	},
+	"devDependencies": {
+		"@types/node": "^24.9.2",
+		"dotenv-cli": "^7.4.2",
+		"tsx": "^4.20.6",
+		"vitest": "^4.0.6"
+	},
+	"type": "module"
+}

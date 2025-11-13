@@ -1,0 +1,65 @@
+import { Button, Card, Group, Stack, Text, Textarea } from '@mantine/core'
+import { IconSend } from '@tabler/icons-react'
+import { useState } from 'react'
+import { useDebate } from '../../hooks/useDebate'
+
+interface MessageInputProps {
+	onMessageSent?: () => void
+}
+
+const MessageInput = ({ onMessageSent }: MessageInputProps) => {
+	const { sendMessage, isSending, error } = useDebate()
+	const [messageInput, setMessageInput] = useState('')
+
+	const handleSendMessage = async () => {
+		try {
+			await sendMessage(messageInput)
+			setMessageInput('')
+			// Trigger scroll after message is sent
+			setTimeout(() => {
+				onMessageSent?.()
+			}, 100)
+		} catch (err) {
+			console.error('Failed to send message', err)
+		}
+	}
+
+	const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		if (e.key === 'Enter') {
+			e.preventDefault()
+			handleSendMessage()
+		}
+	}
+
+	return (
+		<Card withBorder radius='md' p='md'>
+			<Stack gap='sm'>
+				<Textarea
+					autoFocus
+					placeholder='Kirjoita argumenttisi tähän...'
+					value={messageInput}
+					onChange={e => setMessageInput(e.currentTarget.value)}
+					onKeyDown={handleKeyDown}
+					minRows={3}
+					maxRows={6}
+				/>
+				<Group justify='space-between'>
+					{error && (
+						<Text size='sm' c='red'>
+							{error}
+						</Text>
+					)}
+					<Button
+						leftSection={<IconSend size={16} />}
+						onClick={handleSendMessage}
+						loading={isSending}
+					>
+						Lähetä
+					</Button>
+				</Group>
+			</Stack>
+		</Card>
+	)
+}
+
+export default MessageInput
