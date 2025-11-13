@@ -9,26 +9,34 @@ import { useDebate } from '../features/debate/hooks/useDebate'
 
 const HomePage = () => {
 	const navigate = useNavigate()
-	const { createDebate, joinDebate, isCreating, error } = useDebate()
+	const { createDebate, joinDebate, isCreating } = useDebate()
 	const [createModalOpened, setCreateModalOpened] = useState(false)
 	const [joinModalOpened, setJoinModalOpened] = useState(false)
+	const [createError, setCreateError] = useState<string | null>(null)
+	const [joinError, setJoinError] = useState<string | null>(null)
 
 	const handleConfirmCreate = async (topic: string, topicSideA: string, topicSideB: string) => {
+		setCreateError(null)
 		try {
 			const roomCode = await createDebate(topic, topicSideA, topicSideB)
 			navigate(`/argument/${roomCode}`)
 			setCreateModalOpened(false)
 		} catch (error) {
+			const message = error instanceof Error ? error.message : 'Väittelyn luonti epäonnistui'
+			setCreateError(message)
 			console.error('Failed to create debate', error)
 		}
 	}
 
 	const handleConfirmJoin = async (roomCode: string) => {
+		setJoinError(null)
 		try {
 			const joinedRoomCode = await joinDebate(roomCode)
 			navigate(`/argument/${joinedRoomCode}`)
 			setJoinModalOpened(false)
 		} catch (error) {
+			const message = error instanceof Error ? error.message : 'Väittelyyn liittyminen epäonnistui'
+			setJoinError(message)
 			console.error('Failed to join debate', error)
 		}
 	}
@@ -71,27 +79,33 @@ const HomePage = () => {
 					</Grid.Col>
 				</Grid>
 
-				{error && (
+				{(createError || joinError) && (
 					<Text c='red' ta='center' size='sm'>
-						{error}
+						{createError || joinError}
 					</Text>
 				)}
 			</Stack>
 
 			<CreateDebateModal
 				opened={createModalOpened}
-				onClose={() => setCreateModalOpened(false)}
+				onClose={() => {
+					setCreateModalOpened(false)
+					setCreateError(null)
+				}}
 				onConfirm={handleConfirmCreate}
 				loading={isCreating}
-				error={error}
+				error={createError}
 			/>
 
 			<JoinDebateModal
 				opened={joinModalOpened}
-				onClose={() => setJoinModalOpened(false)}
+				onClose={() => {
+					setJoinModalOpened(false)
+					setJoinError(null)
+				}}
 				onConfirm={handleConfirmJoin}
 				loading={isCreating}
-				error={error}
+				error={joinError}
 			/>
 		</Container>
 	)

@@ -9,10 +9,12 @@ interface MessageInputProps {
 }
 
 const MessageInput = ({ onMessageSent, argumentsRemaining }: MessageInputProps) => {
-	const { sendMessage, isSending, error } = useDebate()
+	const { sendMessage, isSending } = useDebate()
 	const [messageInput, setMessageInput] = useState('')
+	const [error, setError] = useState<string | null>(null)
 
 	const handleSendMessage = async () => {
+		setError(null)
 		try {
 			await sendMessage(messageInput)
 			setMessageInput('')
@@ -21,6 +23,8 @@ const MessageInput = ({ onMessageSent, argumentsRemaining }: MessageInputProps) 
 				onMessageSent?.()
 			}, 100)
 		} catch (err) {
+			const message = err instanceof Error ? err.message : 'Viestin lähetys epäonnistui'
+			setError(message)
 			console.error('Failed to send message', err)
 		}
 	}

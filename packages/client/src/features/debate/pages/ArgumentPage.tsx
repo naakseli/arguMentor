@@ -8,6 +8,14 @@ const ArgumentPage = () => {
 	const { argumentCode } = useParams()
 	const { debate, userSide, loading, error } = useArgumentPage(argumentCode)
 
+	if (loading) {
+		return (
+			<Group justify='center' py='xl'>
+				<Loader />
+			</Group>
+		)
+	}
+
 	if (!userSide) {
 		return <Text c='red'>Virhe: Puoli ei ole määritelty</Text>
 	}
