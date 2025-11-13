@@ -11,6 +11,7 @@ import type {
 import { DebateSide, DebateStatus } from '@argumentor/shared'
 import { useEffect, useState } from 'react'
 import { useSocket } from '../../../providers/SocketProvider'
+import { ensureSocketConnected } from '../../../services/socketClient'
 import { useDebate } from './useDebate'
 
 interface UseArgumentPageResult {
@@ -18,18 +19,6 @@ interface UseArgumentPageResult {
 	userSide: DebateSide | null
 	loading: boolean
 	error: string | null
-}
-
-const ensureSocketConnected = (socket: ReturnType<typeof useSocket>) => {
-	return new Promise<void>((resolve, reject) => {
-		if (socket.connected) {
-			resolve()
-			return
-		}
-		socket.once('connect', () => resolve())
-		socket.once('connect_error', (err: Error) => reject(err))
-		socket.connect()
-	})
 }
 
 export const useArgumentPage = (roomCode: string | undefined): UseArgumentPageResult => {

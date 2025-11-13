@@ -29,3 +29,15 @@ export const destroySocket = (): void => {
 		socketInstance = null
 	}
 }
+
+export const ensureSocketConnected = (socket: DebateClientSocket): Promise<void> => {
+	return new Promise<void>((resolve, reject) => {
+		if (socket.connected) {
+			resolve()
+			return
+		}
+		socket.once('connect', () => resolve())
+		socket.once('connect_error', (err: Error) => reject(err))
+		socket.connect()
+	})
+}

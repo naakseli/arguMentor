@@ -1,6 +1,6 @@
 import { Button, Card, Group, Modal, SimpleGrid, Stack, Text, TextInput } from '@mantine/core'
 import { useState } from 'react'
-import { defaultTopicOptions } from '../../defaultTopicOptions'
+import { defaultTopicOptions } from '../defaultTopicOptions'
 
 interface CreateDebateModalProps {
 	opened: boolean

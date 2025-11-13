@@ -8,6 +8,7 @@ import type {
 } from '@argumentor/shared'
 import { useState } from 'react'
 import { useSocket } from '../../../providers/SocketProvider'
+import { ensureSocketConnected } from '../../../services/socketClient'
 
 interface UseDebateResult {
 	createDebate: (topic: string, topicSideA: string, topicSideB: string) => Promise<string>
@@ -28,24 +29,12 @@ export const useDebate = (): UseDebateResult => {
 	const [isSending, setIsSending] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 
-	const ensureSocketConnected = () => {
-		return new Promise<void>((resolve, reject) => {
-			if (socket.connected) {
-				resolve()
-				return
-			}
-			socket.once('connect', () => resolve())
-			socket.once('connect_error', (err: Error) => reject(err))
-			socket.connect()
-		})
-	}
-
 	const createDebate = async (topic: string, topicSideA: string, topicSideB: string) => {
 		setIsCreating(true)
 		setError(null)
 
 		try {
-			await ensureSocketConnected()
+			await ensureSocketConnected(socket)
 
 			const roomCode = await new Promise<string>((resolve, reject) => {
 				socket.once('debate_created', (payload: DebateCreatedEvent) => resolve(payload.roomCode))
@@ -77,7 +66,7 @@ export const useDebate = (): UseDebateResult => {
 		setError(null)
 
 		try {
-			await ensureSocketConnected()
+			await ensureSocketConnected(socket)
 
 			const result = await new Promise<string>((resolve, reject) => {
 				socket.once('debate_joined', (payload: DebateJoinedEvent) =>
@@ -106,7 +95,7 @@ export const useDebate = (): UseDebateResult => {
 
 	const getDebateInfo = async (roomCode: string) => {
 		try {
-			await ensureSocketConnected()
+			await ensureSocketConnected(socket)
 
 			const debate = await new Promise<Debate>((resolve, reject) => {
 				socket.once('debate_info', (payload: DebateInfoEvent) => resolve(payload.debate))
@@ -131,7 +120,7 @@ export const useDebate = (): UseDebateResult => {
 		setError(null)
 
 		try {
-			await ensureSocketConnected()
+			await ensureSocketConnected(socket)
 
 			await new Promise<void>((resolve, reject) => {
 				socket.once('message_sent', (payload: MessageSentEvent) => resolve())
