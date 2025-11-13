@@ -23,18 +23,7 @@ const MessageItem = ({ message, debate }: MessageItemProps) => {
 				justifyContent: message.side === DebateSide.SIDE_A ? 'flex-start' : 'flex-end',
 			}}
 		>
-			<Card
-				withBorder
-				radius='md'
-				p='sm'
-				style={{
-					maxWidth: '70%',
-					backgroundColor:
-						message.side === DebateSide.SIDE_A
-							? 'var(--mantine-color-blue-0)'
-							: 'var(--mantine-color-green-0)',
-				}}
-			>
+			<Card withBorder radius='md' p='sm' maw='70%' bg={getMessageColor(message.side)}>
 				<Stack gap={4}>
 					<Group gap='xs' justify='space-between'>
 						<Badge size='sm' color={getMessageColor(message.side)} variant='light'>

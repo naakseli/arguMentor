@@ -21,11 +21,16 @@ const DebateView = ({ debate, userSide }: DebateViewProps) => {
 
 	const handleMessageSent = () => setScrollTrigger(prev => prev + 1)
 
+	const argumentsRemaining =
+		userSide === DebateSide.SIDE_A ? debate.argumentsRemainingA : debate.argumentsRemainingB
+
 	return (
 		<Stack gap='md'>
 			<DebateHeader debate={debate} userSide={userSide} />
 			<MessageList debate={debate} scrollTrigger={scrollTrigger} />
-			{!isDebateEnded && <MessageInput onMessageSent={handleMessageSent} />}
+			{!isDebateEnded && (
+				<MessageInput onMessageSent={handleMessageSent} argumentsRemaining={argumentsRemaining} />
+			)}
 			{isDebateEnded && !debate.evaluation && <DebateEndedAlert />}
 			{debate.evaluation && <EvaluationDisplay evaluation={debate.evaluation} />}
 		</Stack>

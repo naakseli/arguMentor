@@ -1,13 +1,14 @@
-import { Button, Card, Group, Stack, Text, Textarea } from '@mantine/core'
-import { IconSend } from '@tabler/icons-react'
+import { Alert, Button, Card, Group, Stack, Text, Textarea } from '@mantine/core'
+import { IconInfoCircle, IconSend } from '@tabler/icons-react'
 import { useState } from 'react'
 import { useDebate } from '../../hooks/useDebate'
 
 interface MessageInputProps {
 	onMessageSent?: () => void
+	argumentsRemaining: number
 }
 
-const MessageInput = ({ onMessageSent }: MessageInputProps) => {
+const MessageInput = ({ onMessageSent, argumentsRemaining }: MessageInputProps) => {
 	const { sendMessage, isSending, error } = useDebate()
 	const [messageInput, setMessageInput] = useState('')
 
@@ -29,6 +30,21 @@ const MessageInput = ({ onMessageSent }: MessageInputProps) => {
 			e.preventDefault()
 			handleSendMessage()
 		}
+	}
+
+	if (argumentsRemaining <= 0) {
+		return (
+			<Alert
+				icon={<IconInfoCircle size={16} />}
+				title='Kaikki argumentit käytetty'
+				color='orange'
+				variant='light'
+			>
+				<Text size='sm'>
+					Olet käyttänyt kaikki argumenttisi. Odota vastustajasi viimeistä argumenttia.
+				</Text>
+			</Alert>
+		)
 	}
 
 	return (
