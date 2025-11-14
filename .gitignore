@@ -109,3 +109,9 @@ dist
 
 # Prisma generated files
 **/prisma/generated/
+
+# Environment files
+.env
+.env.*
+**/.env
+**/.env.*
