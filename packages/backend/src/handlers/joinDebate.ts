@@ -1,6 +1,7 @@
 import type { JoinDebatePayload } from '@argumentor/shared'
 import { DebateSide, DebateStatus } from '@argumentor/shared'
 import * as debateService from '../services/debateService.js'
+import { startTurnTimer } from '../services/turnTimerService.js'
 import type { DebateSocket } from '../types/socket.js'
 import { emitSocketError, handleSocketHandlerError } from '../utils/socketError.js'
 
@@ -36,7 +37,14 @@ export const handleJoinDebate = async (
 
 		// Update debate status if both sides are now joined
 		if (debate.sideAJoined && debate.sideBJoined) {
+			// Start the debate and randomly choose which side begins
 			debate.status = DebateStatus.ACTIVE
+
+			const startingSide =
+				Math.random() < 0.5 ? DebateSide.SIDE_A : DebateSide.SIDE_B
+
+			debate.currentTurn = startingSide
+			debate.turnEndsAt = new Date(Date.now() + 60_000).toISOString()
 		}
 
 		// Save updated debate
@@ -55,9 +63,14 @@ export const handleJoinDebate = async (
 			debate,
 		})
 
-		// If debate just started, notify all participants
+		// If debate just started, notify all participants and start the timer
 		if (debate.status === DebateStatus.ACTIVE) {
+			socket.emit('debate_started', { debate })
 			socket.to(roomCode).emit('debate_started', { debate })
+
+			if (debate.currentTurn != null) {
+				startTurnTimer(debate)
+			}
 		}
 	} catch (error) {
 		handleSocketHandlerError(

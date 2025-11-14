@@ -30,6 +30,7 @@ export const handleCreateDebate = async (
 			sideBJoined: false,
 			argumentsRemainingA: 3,
 			argumentsRemainingB: 3,
+			currentTurn: null,
 			messages: [],
 		}
 

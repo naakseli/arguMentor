@@ -24,6 +24,8 @@ export interface Debate {
 	sideBJoined: boolean
 	argumentsRemainingA: number // Jäljellä olevat argumentit (alkuperäinen: 3)
 	argumentsRemainingB: number // Jäljellä olevat argumentit (alkuperäinen: 3)
+	currentTurn: DebateSide | null // Kumman vuoro on tällä hetkellä argumentoida
+	turnEndsAt?: string // ISO-aikaleima, mihin asti nykyinen vuoro kestää
 	messages: Message[]
 	evaluation?: Evaluation
 }

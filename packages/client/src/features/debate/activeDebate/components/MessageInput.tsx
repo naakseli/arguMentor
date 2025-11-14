@@ -6,14 +6,24 @@ import { useDebate } from '../../hooks/useDebate'
 interface MessageInputProps {
 	onMessageSent?: () => void
 	argumentsRemaining: number
+	isUserTurn: boolean
 }
 
-const MessageInput = ({ onMessageSent, argumentsRemaining }: MessageInputProps) => {
+const MessageInput = ({ onMessageSent, argumentsRemaining, isUserTurn }: MessageInputProps) => {
 	const { sendMessage, isSending } = useDebate()
 	const [messageInput, setMessageInput] = useState('')
 	const [error, setError] = useState<string | null>(null)
 
 	const handleSendMessage = async () => {
+		if (!isUserTurn) {
+			setError('Et voi lähettää viestiä, koska ei ole sinun vuorosi.')
+			return
+		}
+
+		if (!messageInput.trim()) {
+			return
+		}
+
 		setError(null)
 		try {
 			await sendMessage(messageInput)
@@ -62,17 +72,34 @@ const MessageInput = ({ onMessageSent, argumentsRemaining }: MessageInputProps) 
 					onKeyDown={handleKeyDown}
 					minRows={3}
 					maxRows={6}
+					disabled={!isUserTurn}
 				/>
-				<Group justify='space-between'>
-					{error && (
-						<Text size='sm' c='red'>
-							{error}
+				{!isUserTurn && (
+					<Alert
+						icon={<IconInfoCircle size={16} />}
+						color='blue'
+						variant='light'
+						title='Ei ole sinun vuorosi'
+					>
+						<Text size='sm'>
+							Odota vastustajasi argumenttia. Vuoro vaihtuu automaattisesti, kun vastustajan vuoro
+							on ohi.
 						</Text>
-					)}
+					</Alert>
+				)}
+				<Group justify='space-between' align='center'>
+					<Stack gap={4}>
+						{error && (
+							<Text size='sm' c='red'>
+								{error}
+							</Text>
+						)}
+					</Stack>
 					<Button
 						leftSection={<IconSend size={16} />}
 						onClick={handleSendMessage}
 						loading={isSending}
+						disabled={!isUserTurn || !messageInput.trim()}
 					>
 						Lähetä
 					</Button>

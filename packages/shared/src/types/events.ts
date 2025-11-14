@@ -46,6 +46,11 @@ export interface ArgumentsUpdatedEvent {
 	argumentsRemainingB: number
 }
 
+export interface TurnUpdatedEvent {
+	currentTurn: DebateSide | null
+	turnEndsAt?: string
+}
+
 export interface MessageSentEvent {
 	messageId: string
 	timestamp: string
@@ -86,6 +91,7 @@ export interface ServerToClientEvents {
 	debate_info: (payload: DebateInfoEvent) => void
 	debate_started: (payload: DebateStartedEvent) => void
 	arguments_updated: (payload: ArgumentsUpdatedEvent) => void
+	turn_updated: (payload: TurnUpdatedEvent) => void
 	message_sent: (payload: MessageSentEvent) => void
 	new_message: (payload: NewMessageEvent) => void
 	debate_ended: (payload: DebateEndedEvent) => void

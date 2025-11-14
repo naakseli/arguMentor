@@ -2,6 +2,7 @@ import type { SendMessagePayload, ServerToClientEvents } from '@argumentor/share
 import { DebateSide, DebateStatus } from '@argumentor/shared'
 import { randomUUID } from 'crypto'
 import * as debateService from '../services/debateService.js'
+import { clearTurnTimer, startTurnTimer } from '../services/turnTimerService.js'
 import type { DebateSocket } from '../types/socket.js'
 import { emitSocketError, handleSocketHandlerError } from '../utils/socketError.js'
 
@@ -43,6 +44,16 @@ export const handleSendMessage = async (
 			return
 		}
 
+		// Messages can only be sent on the sender's turn
+		if (debate.currentTurn !== side) {
+			emitSocketError(
+				socket,
+				'NOT_YOUR_TURN',
+				'You cannot send a message when it is not your turn'
+			)
+			return
+		}
+
 		const isSideA = side === DebateSide.SIDE_A
 		const argumentsRemaining = isSideA ? debate.argumentsRemainingA : debate.argumentsRemainingB
 
@@ -68,10 +79,31 @@ export const handleSendMessage = async (
 			debate.argumentsRemainingB -= 1
 		}
 
-		const debateJustEnded = debate.argumentsRemainingA === 0 && debate.argumentsRemainingB === 0
+		const argumentsRemainingA = debate.argumentsRemainingA
+		const argumentsRemainingB = debate.argumentsRemainingB
+
+		const debateJustEnded = argumentsRemainingA === 0 && argumentsRemainingB === 0
 
 		if (debateJustEnded) {
 			debate.status = DebateStatus.ENDED
+			debate.currentTurn = null
+			debate.turnEndsAt = undefined
+		} else {
+			// Switch turn to the opponent if they still have arguments left
+			const nextSide = isSideA ? DebateSide.SIDE_B : DebateSide.SIDE_A
+			const nextHasArguments =
+				(nextSide === DebateSide.SIDE_A && argumentsRemainingA > 0) ||
+				(nextSide === DebateSide.SIDE_B && argumentsRemainingB > 0)
+
+			if (nextHasArguments) {
+				debate.currentTurn = nextSide
+				debate.turnEndsAt = new Date(Date.now() + 60_000).toISOString()
+			} else {
+				// Opponent has no arguments left -> debate ends
+				debate.status = DebateStatus.ENDED
+				debate.currentTurn = null
+				debate.turnEndsAt = undefined
+			}
 		}
 
 		await debateService.saveDebate(debate)
@@ -97,12 +129,22 @@ export const handleSendMessage = async (
 		})
 
 		broadcast('arguments_updated', {
-			argumentsRemainingA: debate.argumentsRemainingA,
-			argumentsRemainingB: debate.argumentsRemainingB,
+			argumentsRemainingA,
+			argumentsRemainingB,
 		})
 
-		if (debateJustEnded) {
+		broadcast('turn_updated', {
+			currentTurn: debate.currentTurn,
+			turnEndsAt: debate.turnEndsAt,
+		})
+
+		if (debateJustEnded || debate.status === DebateStatus.ENDED) {
+			// Debate ended due to this message -> clear possible timer and notify clients
+			clearTurnTimer(roomCode)
 			broadcast('debate_ended', { debate })
+		} else if (debate.currentTurn != null) {
+			// Start timer for the next turn
+			startTurnTimer(debate)
 		}
 	} catch (error) {
 		handleSocketHandlerError(

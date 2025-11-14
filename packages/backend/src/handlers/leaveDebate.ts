@@ -1,4 +1,5 @@
 import type { DebateSocket } from '../types/socket.js'
+import { clearTurnTimer } from '../services/turnTimerService.js'
 
 export const handleLeaveDebate = async (socket: DebateSocket): Promise<void> => {
 	try {
@@ -7,6 +8,9 @@ export const handleLeaveDebate = async (socket: DebateSocket): Promise<void> => 
 		if (roomCode) {
 			// Leave socket room
 			await socket.leave(roomCode)
+
+			// Clear any running turn timer for this room
+			clearTurnTimer(roomCode)
 
 			// Clear socket data
 			socket.data.roomCode = undefined

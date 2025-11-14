@@ -80,6 +80,8 @@ export const useArgumentPage = (roomCode: string | undefined): UseArgumentPageRe
 							status: payload.debate.status,
 							sideAJoined: payload.debate.sideAJoined,
 							sideBJoined: payload.debate.sideBJoined,
+							currentTurn: payload.debate.currentTurn,
+							turnEndsAt: payload.debate.turnEndsAt,
 						}
 					})
 				}
@@ -118,6 +120,18 @@ export const useArgumentPage = (roomCode: string | undefined): UseArgumentPageRe
 					})
 				}
 			},
+			onTurnUpdated: payload => {
+				if (isMounted) {
+					setDebate(prevDebate => {
+						if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
+						return {
+							...prevDebate,
+							currentTurn: payload.currentTurn,
+							turnEndsAt: payload.turnEndsAt,
+						}
+					})
+				}
+			},
 			onEvaluationReady: payload => {
 				if (isMounted) {
 					setDebate(prevDebate => {
@@ -142,7 +156,7 @@ export const useArgumentPage = (roomCode: string | undefined): UseArgumentPageRe
 			isMounted = false
 			unsubscribe()
 		}
-	}, [roomCode, socket, getDebateInfo])
+	}, [roomCode])
 
 	return {
 		debate,

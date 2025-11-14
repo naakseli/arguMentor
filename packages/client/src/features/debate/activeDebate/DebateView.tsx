@@ -24,12 +24,18 @@ const DebateView = ({ debate, userSide }: DebateViewProps) => {
 	const argumentsRemaining =
 		userSide === DebateSide.SIDE_A ? debate.argumentsRemainingA : debate.argumentsRemainingB
 
+	const isUserTurn = debate.currentTurn === userSide
+
 	return (
 		<Stack gap='md'>
 			<DebateHeader debate={debate} userSide={userSide} />
 			<MessageList debate={debate} scrollTrigger={scrollTrigger} />
 			{!isDebateEnded && (
-				<MessageInput onMessageSent={handleMessageSent} argumentsRemaining={argumentsRemaining} />
+				<MessageInput
+					onMessageSent={handleMessageSent}
+					argumentsRemaining={argumentsRemaining}
+					isUserTurn={isUserTurn}
+				/>
 			)}
 			{isDebateEnded && !debate.evaluation && <DebateEndedAlert />}
 			{debate.evaluation && <EvaluationDisplay evaluation={debate.evaluation} />}

@@ -1,24 +1,8 @@
-// Connect to Redis
-import type {
-	ClientToServerEvents,
-	DebateSocketData,
-	InterServerEvents,
-	ServerToClientEvents,
-} from '@argumentor/shared'
-import { Server } from 'socket.io'
 import { setupSocketHandlers } from './handlers/socketHandlers.js'
 import redis from './services/redis.js'
+import { io } from './socketServer.js'
 
 redis.connect()
-
-const io = new Server<
-	ClientToServerEvents,
-	ServerToClientEvents,
-	InterServerEvents,
-	DebateSocketData
->({
-	cors: { origin: '*' },
-})
 
 io.on('connection', setupSocketHandlers)
 

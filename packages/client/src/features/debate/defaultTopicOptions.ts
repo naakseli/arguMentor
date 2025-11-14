@@ -5,7 +5,7 @@ export const defaultTopicOptions = [
 		topicSideB: 'Kissat',
 	},
 	{
-		topic: 'Pizza ananaksella?',
+		topic: 'Kuuluuko ananas pizzaan?',
 		topicSideA: 'Kyllä',
 		topicSideB: 'Ei',
 	},

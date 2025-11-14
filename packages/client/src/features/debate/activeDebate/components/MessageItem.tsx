@@ -16,6 +16,10 @@ const MessageItem = ({ message, debate }: MessageItemProps) => {
 		return side === DebateSide.SIDE_A ? 'blue' : 'green'
 	}
 
+	const getMessageBackground = (side: DebateSide) => {
+		return side === DebateSide.SIDE_A ? 'blue.0' : 'green.0'
+	}
+
 	return (
 		<Box
 			style={{
@@ -23,7 +27,14 @@ const MessageItem = ({ message, debate }: MessageItemProps) => {
 				justifyContent: message.side === DebateSide.SIDE_A ? 'flex-start' : 'flex-end',
 			}}
 		>
-			<Card withBorder radius='md' p='sm' maw='70%' bg={getMessageColor(message.side)}>
+			<Card
+				withBorder
+				shadow='xs'
+				radius='md'
+				p='sm'
+				maw='70%'
+				bg={getMessageBackground(message.side)}
+			>
 				<Stack gap={4}>
 					<Group gap='xs' justify='space-between'>
 						<Badge size='sm' color={getMessageColor(message.side)} variant='light'>

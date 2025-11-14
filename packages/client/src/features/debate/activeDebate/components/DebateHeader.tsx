@@ -2,6 +2,7 @@ import type { Debate } from '@argumentor/shared'
 import { DebateSide, DebateStatus } from '@argumentor/shared'
 import { Alert, Badge, Box, Card, Group, Stack, Text, Title } from '@mantine/core'
 import { IconInfoCircle } from '@tabler/icons-react'
+import { useTimer } from '../../hooks/useTimer'
 
 interface DebateHeaderProps {
 	debate: Debate
@@ -38,14 +39,43 @@ const DebateHeader = ({ debate, userSide }: DebateHeaderProps) => {
 	const userSideVars = userSide === DebateSide.SIDE_A ? sideAVars : sideBVars
 	const opponentSideVars = userSide === DebateSide.SIDE_A ? sideBVars : sideAVars
 
+	const isUserTurn = debate.currentTurn === userSide
+	const isActiveTurn = debate.status === DebateStatus.ACTIVE && debate.currentTurn !== null
+	const secondsRemaining = useTimer(debate.turnEndsAt, isActiveTurn)
+
 	return (
 		<Card withBorder radius='md' p='md'>
 			<Stack gap='sm'>
+				<Title order={4} mb='xs'>
+					{debate.topic}
+				</Title>
+				{/* Turn & timer - pääroolissa */}
+				{isActiveTurn && userSide && (
+					<Group justify='space-between' align='center'>
+						<Stack gap={2}>
+							<Text size='xs' c='dimmed'>
+								Nyt vuorossa
+							</Text>
+							<Text fw={700} size='xl' c={isUserTurn ? 'green' : 'dimmed'}>
+								{isUserTurn ? 'Sinun vuorosi' : 'Vastustajan vuoro'}
+							</Text>
+						</Stack>
+						{secondsRemaining !== null && (
+							<Stack gap={2} align='flex-end'>
+								<Text size='xs' c='dimmed'>
+									Aikaa jäljellä
+								</Text>
+								<Text fw={700} size='xl' c={secondsRemaining <= 10 ? 'red' : 'dark'}>
+									{Math.floor(secondsRemaining / 60)}:{`${secondsRemaining % 60}`.padStart(2, '0')}
+								</Text>
+							</Stack>
+						)}
+					</Group>
+				)}
+
+				{/* Oma kanta + aihe */}
 				<Group justify='space-between' align='flex-start'>
 					<Box style={{ flex: 1 }}>
-						<Title order={3} mb='xs'>
-							{userSideVars.topic}
-						</Title>
 						{userSide && (
 							<Alert
 								icon={<IconInfoCircle size={16} />}
@@ -53,21 +83,13 @@ const DebateHeader = ({ debate, userSide }: DebateHeaderProps) => {
 								variant='light'
 								mb='xs'
 							>
-								<Text size='sm' fw={600}>
-									Sinun tehtäväsi: Puolusta{' '}
-									<Text span c={userSideVars.color}>
+								<Text size='sm' fw={700}>
+									Sinun kantasi:{' '}
+									<Text span c={userSideVars.color} fw={700}>
 										{userSideVars.topic}
 									</Text>
 								</Text>
 							</Alert>
-						)}
-						{opponentSideVars.topic && (
-							<Text size='sm' c='dimmed'>
-								Vastustajasi puolustaa:{' '}
-								<Text span fw={600}>
-									{opponentSideVars.topic}
-								</Text>
-							</Text>
 						)}
 					</Box>
 					{getStatusBadge()}
@@ -76,11 +98,11 @@ const DebateHeader = ({ debate, userSide }: DebateHeaderProps) => {
 				{/* Arguments remaining */}
 				{userSide && (
 					<Group gap='md'>
-						<Badge variant='light' color={userSideVars.color} size='lg'>
+						<Badge variant='light' color={userSideVars.color} size='sm'>
 							Sinulla: {userSideVars.argumentsRemaining} argumenttia jäljellä
 						</Badge>
 						{opponentSideVars.topic && (
-							<Badge variant='light' color={opponentSideVars.color} size='lg'>
+							<Badge variant='light' color={opponentSideVars.color} size='sm'>
 								Vastustaja: {opponentSideVars.argumentsRemaining} argumenttia jäljellä
 							</Badge>
 						)}

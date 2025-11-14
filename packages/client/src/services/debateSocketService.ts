@@ -9,6 +9,7 @@ import type {
 	ErrorEvent,
 	EvaluationReadyEvent,
 	NewMessageEvent,
+	TurnUpdatedEvent,
 } from '@argumentor/shared'
 import type { DebateClientSocket } from './socketClient'
 import { ensureSocketConnected } from './socketClient'
@@ -20,6 +21,7 @@ export interface DebateEventCallbacks {
 	onDebateJoined?: (payload: DebateJoinedEvent) => void
 	onDebateStarted?: (payload: DebateStartedEvent) => void
 	onArgumentsUpdated?: (payload: ArgumentsUpdatedEvent) => void
+	onTurnUpdated?: (payload: TurnUpdatedEvent) => void
 	onNewMessage?: (payload: NewMessageEvent) => void
 	onDebateEnded?: (payload: DebateEndedEvent) => void
 	onEvaluationReady?: (payload: EvaluationReadyEvent) => void
@@ -119,6 +121,10 @@ export const debateSocketService = {
 			callbacks.onArgumentsUpdated?.(payload)
 		}
 
+		const handleTurnUpdated = (payload: TurnUpdatedEvent) => {
+			callbacks.onTurnUpdated?.(payload)
+		}
+
 		const handleNewMessage = (payload: NewMessageEvent) => {
 			callbacks.onNewMessage?.(payload)
 		}
@@ -141,6 +147,7 @@ export const debateSocketService = {
 		socket.on('debate_joined', handleDebateJoined)
 		socket.on('debate_started', handleDebateStarted)
 		socket.on('arguments_updated', handleArgumentsUpdated)
+		socket.on('turn_updated', handleTurnUpdated)
 		socket.on('new_message', handleNewMessage)
 		socket.on('debate_ended', handleDebateEnded)
 		socket.on('evaluation_ready', handleEvaluationReady)
@@ -151,6 +158,7 @@ export const debateSocketService = {
 			socket.off('debate_joined', handleDebateJoined)
 			socket.off('debate_started', handleDebateStarted)
 			socket.off('arguments_updated', handleArgumentsUpdated)
+			socket.off('turn_updated', handleTurnUpdated)
 			socket.off('new_message', handleNewMessage)
 			socket.off('debate_ended', handleDebateEnded)
 			socket.off('evaluation_ready', handleEvaluationReady)
