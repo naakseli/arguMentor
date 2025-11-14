@@ -1,6 +1,7 @@
-import { Debate, DebateSide, Evaluation } from '@argumentor/shared'
+import { Debate, DebateSide, DebateStatus, Evaluation } from '@argumentor/shared'
 import { randomUUID } from 'crypto'
 import OpenAI from 'openai'
+import * as debateService from './debateService.js'
 
 const MODEL = process.env.OPENAI_MODEL ?? 'gpt-4.1-mini'
 
@@ -101,4 +102,22 @@ export const evaluateDebate = async (debate: Debate): Promise<Evaluation> => {
 	}
 
 	return evaluation
+}
+
+export const evaluateAndFinalizeDebate = async (roomCode: string): Promise<Debate | null> => {
+	const latestDebate = await debateService.getDebate(roomCode)
+
+	if (!latestDebate) return null
+
+	const evaluation = await evaluateDebate(latestDebate)
+
+	const updatedDebate = {
+		...latestDebate,
+		evaluation,
+		status: DebateStatus.EVALUATED,
+	}
+
+	await debateService.saveDebate(updatedDebate)
+
+	return updatedDebate
 }

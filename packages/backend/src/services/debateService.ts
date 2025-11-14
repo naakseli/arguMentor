@@ -20,14 +20,12 @@ export const getDebate = async (roomCode: string): Promise<Debate | null> => {
 	return data ? deserializeDebate(data) : null
 }
 
-export const saveDebate = async (debate: Debate, ttlSeconds?: number): Promise<void> => {
-	await redis.getClient().setex(getKey(debate.roomCode), ttlSeconds ?? TTL, JSON.stringify(debate))
-}
+export const saveDebate = (debate: Debate) =>
+	redis.getClient().setex(getKey(debate.roomCode), TTL, JSON.stringify(debate))
 
-export const deleteDebate = async (roomCode: string): Promise<void> => {
-	await redis.getClient().del(getKey(roomCode))
-}
+export const deleteDebate = (roomCode: string) => redis.getClient().del(getKey(roomCode))
 
 export const debateExists = async (roomCode: string): Promise<boolean> => {
-	return (await redis.getClient().exists(getKey(roomCode))) === 1
+	const result = await redis.getClient().exists(getKey(roomCode))
+	return result === 1
 }

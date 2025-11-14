@@ -1,49 +1,13 @@
 import type { SendMessagePayload, ServerToClientEvents } from '@argumentor/shared'
 import { DebateSide, DebateStatus } from '@argumentor/shared'
 import { randomUUID } from 'crypto'
-import { evaluateDebate } from '../services/aiEvaluationService.js'
+import { evaluateAndFinalizeDebate } from '../services/aiEvaluationService.js'
 import * as debateService from '../services/debateService.js'
 import { clearTurnTimer, startTurnTimer } from '../services/turnTimerService.js'
 import type { DebateSocket } from '../types/socket.js'
 import { emitSocketError, handleSocketHandlerError } from '../utils/socketError.js'
 
 const VALID_SIDES = new Set<DebateSide>([DebateSide.SIDE_A, DebateSide.SIDE_B])
-
-const EVALUATED_TTL_SECONDS = 86_400 // 24 tuntia
-
-const triggerAiEvaluation = (socket: DebateSocket, roomCode: string): void => {
-	// Suoritetaan AI-arviointi taustalla, jotta viestin lähetys ei blokkaudu
-	;(async () => {
-		try {
-			const latestDebate = await debateService.getDebate(roomCode)
-
-			if (!latestDebate) {
-				return
-			}
-
-			// Arvioidaan vain jos väittely on päättynyt eikä arviointia ole vielä tehty
-			if (latestDebate.status !== DebateStatus.ENDED || latestDebate.evaluation) {
-				return
-			}
-
-			const evaluation = await evaluateDebate(latestDebate)
-
-			latestDebate.evaluation = evaluation
-			latestDebate.status = DebateStatus.EVALUATED
-
-			await debateService.saveDebate(latestDebate, EVALUATED_TTL_SECONDS)
-
-			const payload: Parameters<ServerToClientEvents['evaluation_ready']>[0] = {
-				evaluation,
-			}
-
-			socket.emit('evaluation_ready', payload)
-			socket.to(roomCode).emit('evaluation_ready', payload)
-		} catch (error) {
-			console.error('Väittelyn AI-arviointi epäonnistui', { roomCode, error })
-		}
-	})()
-}
 
 export const handleSendMessage = async (
 	socket: DebateSocket,
@@ -175,8 +139,13 @@ export const handleSendMessage = async (
 			// Debate ended due to this message -> clear possible timer and notify clients
 			clearTurnTimer(roomCode)
 			broadcast('debate_ended', { debate })
-			// Käynnistetään AI-arviointi taustalla
-			triggerAiEvaluation(socket, roomCode)
+			// Käynnistetään AI-arviointi
+			const evaluatedDebate = await evaluateAndFinalizeDebate(roomCode)
+			if (!evaluatedDebate || !evaluatedDebate.evaluation) return
+
+			broadcast('evaluation_ready', {
+				evaluation: evaluatedDebate.evaluation,
+			})
 		} else if (debate.currentTurn != null) {
 			// Start timer for the next turn
 			startTurnTimer(debate)
