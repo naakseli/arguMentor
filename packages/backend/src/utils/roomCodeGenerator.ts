@@ -17,14 +17,13 @@ const generateRandomCode = (): string => {
 	return code
 }
 
+// Generoi huonekoodin, joka on uniikki
 export const generateUniqueRoomCode = async (): Promise<string> => {
 	for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
 		const code = generateRandomCode()
 		const exists = await debateExists(code)
 
-		if (!exists) {
-			return code
-		}
+		if (!exists) return code
 	}
 
 	throw new Error(`Failed to generate unique room code after ${MAX_RETRIES} attempts`)
