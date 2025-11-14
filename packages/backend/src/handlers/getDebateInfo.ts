@@ -14,19 +14,16 @@ export const handleGetDebateInfo = async (
 			return
 		}
 
-		const roomCode = payload.roomCode.trim().toUpperCase()
-
-		// Get debate
+		const roomCode = payload.roomCode
 		const debate = await debateService.getDebate(roomCode)
+
 		if (!debate) {
 			emitSocketError(socket, 'DEBATE_NOT_FOUND', 'Debate room not found')
 			return
 		}
 
 		// Emit debate info
-		socket.emit('debate_info', {
-			debate,
-		})
+		socket.emit('debate_info', { debate })
 	} catch (error) {
 		handleSocketHandlerError(
 			socket,

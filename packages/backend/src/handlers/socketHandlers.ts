@@ -6,8 +6,6 @@ import { handleLeaveDebate } from './leaveDebate.js'
 import { handleSendMessage } from './sendMessage.js'
 
 export const setupSocketHandlers = (socket: DebateSocket): void => {
-	console.log('Socket connected', socket.id)
-
 	socket.on('create_debate', payload => handleCreateDebate(socket, payload))
 
 	socket.on('join_debate', payload => handleJoinDebate(socket, payload))
