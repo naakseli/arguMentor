@@ -6,5 +6,4 @@ export interface Evaluation {
 	scoreA: number // 0-100
 	scoreB: number // 0-100
 	reasoning: string // AI:n perustelut
-	createdAt: Date
 }
