@@ -1,11 +1,65 @@
 import type { Debate } from '@argumentor/shared'
 import { DebateSide, DebateStatus } from '@argumentor/shared'
-import * as debateService from './debateService.js'
 import { io } from '../socketServer.js'
+import * as debateService from './debateService.js'
 
 const TURN_DURATION_MS = 60_000
 
 const timers = new Map<string, NodeJS.Timeout>()
+
+const getNextSide = (side: DebateSide): DebateSide =>
+	side === DebateSide.SIDE_A ? DebateSide.SIDE_B : DebateSide.SIDE_A
+
+const endDebate = (debate: Debate): Debate => ({
+	...debate,
+	status: DebateStatus.ENDED,
+	currentTurn: null,
+	turnEndsAt: undefined,
+})
+
+const decrementArgument = (debate: Debate, side: DebateSide): void => {
+	if (side === DebateSide.SIDE_A && debate.argumentsRemainingA > 0) {
+		debate.argumentsRemainingA -= 1
+	} else if (side === DebateSide.SIDE_B && debate.argumentsRemainingB > 0) {
+		debate.argumentsRemainingB -= 1
+	}
+}
+
+const hasNoArguments = (debate: Debate, side: DebateSide): boolean => {
+	return side === DebateSide.SIDE_A
+		? debate.argumentsRemainingA === 0
+		: debate.argumentsRemainingB === 0
+}
+
+const applyTurnTimeoutToDebate = (debate: Debate): Debate => {
+	// Only process active debates with current turn
+	if (debate.status !== DebateStatus.ACTIVE || debate.currentTurn == null) return debate
+
+	const updatedDebate = { ...debate }
+	const currentSide = updatedDebate.currentTurn as DebateSide
+
+	// 1. Current side loses one argument
+	decrementArgument(updatedDebate, currentSide)
+
+	// 2. Check if debate should end due to no arguments
+	if (
+		hasNoArguments(updatedDebate, DebateSide.SIDE_A) &&
+		hasNoArguments(updatedDebate, DebateSide.SIDE_B)
+	) {
+		return endDebate(updatedDebate)
+	}
+
+	// 3. Switch to next side if they have arguments
+	const nextSide = getNextSide(currentSide)
+	if (hasNoArguments(updatedDebate, nextSide)) return endDebate(updatedDebate)
+
+	// 4. Continue debate with new turn
+	return {
+		...updatedDebate,
+		currentTurn: nextSide,
+		turnEndsAt: new Date(Date.now() + TURN_DURATION_MS).toISOString(),
+	}
+}
 
 export const clearTurnTimer = (roomCode: string): void => {
 	const existing = timers.get(roomCode)
@@ -22,9 +76,7 @@ export const startTurnTimer = (debate: Debate): void => {
 	// Always clear possible previous timer
 	clearTurnTimer(roomCode)
 
-	if (status !== DebateStatus.ACTIVE || currentTurn == null) {
-		return
-	}
+	if (status !== DebateStatus.ACTIVE || currentTurn == null) return
 
 	const now = Date.now()
 	const endTime = turnEndsAt ? new Date(turnEndsAt).getTime() : now + TURN_DURATION_MS
@@ -45,70 +97,30 @@ const handleTurnTimeout = async (roomCode: string): Promise<void> => {
 
 	const debate = await debateService.getDebate(roomCode)
 
-	if (!debate) {
-		return
-	}
+	if (!debate) return
 
-	if (debate.status !== DebateStatus.ACTIVE || debate.currentTurn == null) {
-		return
-	}
+	const updatedDebate = applyTurnTimeoutToDebate(debate)
 
-	const isSideA = debate.currentTurn === DebateSide.SIDE_A
+	// If nothing changed (e.g. debate no longer active), do not broadcast or reschedule
+	if (updatedDebate === debate) return
 
-	// Current side loses one argument if available
-	if (isSideA) {
-		if (debate.argumentsRemainingA > 0) {
-			debate.argumentsRemainingA -= 1
-		}
-	} else if (debate.argumentsRemainingB > 0) {
-		debate.argumentsRemainingB -= 1
-	}
-
-	const argumentsRemainingA = debate.argumentsRemainingA
-	const argumentsRemainingB = debate.argumentsRemainingB
-
-	const bothZero = argumentsRemainingA === 0 && argumentsRemainingB === 0
-
-	if (bothZero) {
-		debate.status = DebateStatus.ENDED
-		debate.currentTurn = null
-		debate.turnEndsAt = undefined
-	} else {
-		const nextSide = isSideA ? DebateSide.SIDE_B : DebateSide.SIDE_A
-		const nextHasArguments =
-			(nextSide === DebateSide.SIDE_A && argumentsRemainingA > 0) ||
-			(nextSide === DebateSide.SIDE_B && argumentsRemainingB > 0)
-
-		if (nextHasArguments) {
-			debate.currentTurn = nextSide
-			debate.turnEndsAt = new Date(Date.now() + TURN_DURATION_MS).toISOString()
-		} else {
-			// Opponent has no arguments left -> debate ends
-			debate.status = DebateStatus.ENDED
-			debate.currentTurn = null
-			debate.turnEndsAt = undefined
-		}
-	}
-
-	await debateService.saveDebate(debate)
+	await debateService.saveDebate(updatedDebate)
 
 	// Broadcast updates to all clients in the room
 	io.to(roomCode).emit('arguments_updated', {
-		argumentsRemainingA,
-		argumentsRemainingB,
+		argumentsRemainingA: updatedDebate.argumentsRemainingA,
+		argumentsRemainingB: updatedDebate.argumentsRemainingB,
 	})
 
 	io.to(roomCode).emit('turn_updated', {
-		currentTurn: debate.currentTurn,
-		turnEndsAt: debate.turnEndsAt,
+		currentTurn: updatedDebate.currentTurn,
+		turnEndsAt: updatedDebate.turnEndsAt,
 	})
 
-	if (debate.status === DebateStatus.ENDED) {
-		io.to(roomCode).emit('debate_ended', { debate })
-	} else if (debate.currentTurn != null) {
+	if (updatedDebate.status !== DebateStatus.ACTIVE) {
+		io.to(roomCode).emit('debate_ended', { debate: updatedDebate })
+	} else if (updatedDebate.currentTurn != null) {
 		// Start next turn timer
-		startTurnTimer(debate)
+		startTurnTimer(updatedDebate)
 	}
 }
-
-
