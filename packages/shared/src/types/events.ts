@@ -19,8 +19,6 @@ export interface SendMessagePayload {
 	content: string
 }
 
-export interface LeaveDebatePayload {}
-
 // Server → Client Events
 export interface DebateCreatedEvent {
 	roomCode: string
