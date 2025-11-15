@@ -40,12 +40,6 @@ const MessageItem = ({ message, debate }: MessageItemProps) => {
 						<Badge size='sm' color={getMessageColor(message.side)} variant='light'>
 							{getSideLabel(message.side)}
 						</Badge>
-						<Text size='xs' c='dimmed'>
-							{new Date(message.timestamp).toLocaleTimeString('fi-FI', {
-								hour: '2-digit',
-								minute: '2-digit',
-							})}
-						</Text>
 					</Group>
 					<Text size='sm'>{message.content}</Text>
 				</Stack>
