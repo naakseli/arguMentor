@@ -66,8 +66,6 @@ export interface ServerToClientEvents {
 	error: (payload: ErrorEvent) => void
 }
 
-export interface InterServerEvents {}
-
 export interface DebateSocketData {
 	roomCode?: string
 	side?: DebateSide
