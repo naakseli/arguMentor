@@ -6,9 +6,9 @@ import { useArgumentPage } from '../hooks/useArgumentPage'
 
 const ArgumentPage = () => {
 	const { argumentCode } = useParams()
-	const { debate, userSide, loading, error } = useArgumentPage(argumentCode)
+	const { debate, userSide, isLoading, error } = useArgumentPage(argumentCode)
 
-	if (loading) {
+	if (isLoading) {
 		return (
 			<Group justify='center' py='xl'>
 				<Loader />
@@ -29,13 +29,13 @@ const ArgumentPage = () => {
 						Etusivulle
 					</Anchor>
 				</Group>
-				{loading && (
+				{isLoading && (
 					<Group justify='center' py='xl'>
 						<Loader />
 					</Group>
 				)}
-				{!loading && error && <Text c='red'>Virhe: {error}</Text>}
-				{!loading && !error && debate && (
+				{!isLoading && error && <Text c='red'>Virhe: {error}</Text>}
+				{!isLoading && !error && debate && (
 					<>
 						<Text c='dimmed'>Huonekoodi: {debate.roomCode}</Text>
 						{!debate.sideBJoined ? (

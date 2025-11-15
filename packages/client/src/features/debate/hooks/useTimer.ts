@@ -4,10 +4,7 @@ export const useTimer = (endTimeIso?: string, isActive?: boolean): number | null
 	const [secondsRemaining, setSecondsRemaining] = useState<number | null>(null)
 
 	useEffect(() => {
-		if (!endTimeIso || !isActive) {
-			setSecondsRemaining(null)
-			return
-		}
+		if (!endTimeIso || !isActive) return setSecondsRemaining(null)
 
 		const updateRemaining = () => {
 			const endTime = new Date(endTimeIso).getTime()

@@ -1,29 +1,28 @@
 import { Button, Card, Group, Modal, SimpleGrid, Stack, Text, TextInput } from '@mantine/core'
 import { useState } from 'react'
 import { defaultTopicOptions } from '../defaultTopicOptions'
+import { useCreateDebate } from '../hooks/useCreateDebate'
 
 interface CreateDebateModalProps {
 	opened: boolean
 	onClose: () => void
-	onConfirm: (topic: string, topicSideA: string, topicSideB: string) => Promise<void> | void
-	loading?: boolean
-	error?: string | null
 }
 
 const CUSTOM_VALUE = 'custom'
 
-const CreateDebateModal = ({
-	opened,
-	onClose,
-	onConfirm,
-	loading,
-	error,
-}: CreateDebateModalProps) => {
+const CreateDebateModal = ({ opened, onClose }: CreateDebateModalProps) => {
 	const [topic, setTopic] = useState('')
 	const [topicError, setTopicError] = useState<string | null>(null)
 	const [topicSideA, setTopicSideA] = useState('')
 	const [topicSideB, setTopicSideB] = useState('')
 	const [presetIndex, setPresetIndex] = useState<string | null>(null)
+
+	const { handleCreateDebate, error, resetError, isCreating } = useCreateDebate({
+		onSuccess: () => {
+			resetForm()
+			onClose()
+		},
+	})
 
 	const resetForm = () => {
 		setTopic('')
@@ -33,17 +32,21 @@ const CreateDebateModal = ({
 		setPresetIndex(null)
 	}
 
+	const handleClose = () => {
+		resetForm()
+		resetError()
+		onClose()
+	}
+
 	const handleSubmit = async () => {
 		if (presetIndex === null) return setTopicError('Valitse valmis aihe tai syötä oma aihe')
 		if (presetIndex === CUSTOM_VALUE && !topic) return setTopicError('Anna väittelyn aihe')
 
-		await onConfirm(topic, topicSideA, topicSideB)
-		resetForm()
-		onClose()
+		await handleCreateDebate(topic, topicSideA, topicSideB)
 	}
 
 	return (
-		<Modal opened={opened} onClose={onClose} title='Luo uusi väittely' size='lg' centered>
+		<Modal opened={opened} onClose={handleClose} title='Luo uusi väittely' size='lg' centered>
 			<Stack gap='md'>
 				<SimpleGrid cols={1} spacing='sm'>
 					{defaultTopicOptions.map((opt, idx) => {
@@ -126,10 +129,10 @@ const CreateDebateModal = ({
 					</Text>
 				)}
 				<Group justify='flex-end'>
-					<Button variant='default' onClick={onClose}>
+					<Button variant='default' onClick={handleClose}>
 						Peruuta
 					</Button>
-					<Button onClick={handleSubmit} loading={loading}>
+					<Button onClick={handleSubmit} loading={isCreating}>
 						Luo väittely
 					</Button>
 				</Group>

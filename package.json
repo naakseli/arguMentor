@@ -6,10 +6,10 @@
 		"node": ">=20"
 	},
 	"scripts": {
-		"setup": "pnpm i && cd packages/ramsBackend && pnpm localDB:reset",
-		"run:backend": "cd packages/ramsBackend && pnpm dev",
-		"run:frontend": "cd packages/ramsClient && pnpm dev",
-		"TypeCheck": "pnpm --dir packages/ramsBackend exec tsc --noEmit --pretty && pnpm --dir packages/ramsClient exec tsc --noEmit --pretty"
+		"setup": "pnpm i && cd packages/backend && pnpm docker:up",
+		"run:backend": "cd packages/backend && pnpm dev",
+		"run:frontend": "cd packages/client && pnpm dev",
+		"TypeCheck": "pnpm --dir packages/backend exec tsc --noEmit --pretty && pnpm --dir packages/client exec tsc --noEmit --pretty"
 	},
 	"devDependencies": {
 		"prettier": "^3.6.2"
