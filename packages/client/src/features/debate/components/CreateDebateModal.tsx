@@ -21,32 +21,25 @@ const CreateDebateModal = ({
 }: CreateDebateModalProps) => {
 	const [topic, setTopic] = useState('')
 	const [topicError, setTopicError] = useState<string | null>(null)
-	const [topicSideA, setTopicSideA] = useState('Kannattaa')
-	const [topicSideB, setTopicSideB] = useState('Vastustaa')
+	const [topicSideA, setTopicSideA] = useState('')
+	const [topicSideB, setTopicSideB] = useState('')
 	const [presetIndex, setPresetIndex] = useState<string | null>(null)
 
-	const handleSubmit = async () => {
-		// Require selection or custom input
-		if (presetIndex !== CUSTOM_VALUE && presetIndex === null) {
-			setTopicError('Valitse valmis aihe tai valitse Mukautettu')
-			return
-		}
-
-		let finalTopic = topic.trim()
-		if (presetIndex === CUSTOM_VALUE) {
-			if (!finalTopic) {
-				setTopicError('Anna väittelyn aihe')
-				return
-			}
-		}
-
-		await onConfirm(finalTopic, topicSideA.trim() || 'Kannattaa', topicSideB.trim() || 'Vastustaa')
-		// On success, reset local state (parent typically closes on success)
+	const resetForm = () => {
 		setTopic('')
 		setTopicError(null)
-		setTopicSideA('Kannattaa')
-		setTopicSideB('Vastustaa')
+		setTopicSideA('')
+		setTopicSideB('')
 		setPresetIndex(null)
+	}
+
+	const handleSubmit = async () => {
+		if (presetIndex === null) return setTopicError('Valitse valmis aihe tai syötä oma aihe')
+		if (presetIndex === CUSTOM_VALUE && !topic) return setTopicError('Anna väittelyn aihe')
+
+		await onConfirm(topic, topicSideA, topicSideB)
+		resetForm()
+		onClose()
 	}
 
 	return (
@@ -84,7 +77,6 @@ const CreateDebateModal = ({
 						p='md'
 						onClick={() => {
 							setPresetIndex(CUSTOM_VALUE)
-							// Keep current inputs; just switch to custom mode
 							if (topicError) setTopicError(null)
 						}}
 						style={{
