@@ -1,4 +1,4 @@
-import type { DebateSide } from './debate.js'
+import type { DebateSide } from './debate.type.js'
 
 export interface Message {
 	id: string

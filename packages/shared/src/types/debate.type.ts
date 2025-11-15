@@ -1,5 +1,5 @@
-import type { Evaluation } from './evaluation.js'
-import type { Message } from './message.js'
+import type { Evaluation } from './evaluation.type.js'
+import type { Message } from './message.type.js'
 
 export enum DebateStatus {
 	WAITING = 'WAITING', // Odottaa toista osallistujaa

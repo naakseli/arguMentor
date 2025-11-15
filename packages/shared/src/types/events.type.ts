@@ -1,4 +1,4 @@
-import type { Debate, DebateSide } from './debate.js'
+import type { Debate, DebateSide } from './debate.type.js'
 
 // Client → Server Events
 export interface CreateDebatePayload {
