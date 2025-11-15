@@ -27,8 +27,6 @@ export const useArgumentPage = (roomCode: string | undefined): UseArgumentPageRe
 			return
 		}
 
-		let isMounted = true
-
 		const fetchInitialDebate = async () => {
 			setLoading(true)
 			setError(null)
@@ -36,22 +34,16 @@ export const useArgumentPage = (roomCode: string | undefined): UseArgumentPageRe
 			try {
 				const initialDebate = await getDebateInfo(roomCode)
 
-				if (isMounted) {
-					setDebate(initialDebate)
-					// If user created the debate (sideAJoined is true and sideBJoined is false), they are SIDE_A
-					// Otherwise, we'll determine from debate_joined event
-					if (initialDebate.sideAJoined && !initialDebate.sideBJoined) {
-						setUserSide(DebateSide.SIDE_A)
-					} else setUserSide(DebateSide.SIDE_B)
-				}
+				setDebate(initialDebate)
+				// If user created the debate (sideAJoined is true and sideBJoined is false), they are SIDE_A
+				// Otherwise, we'll determine from debate_joined event
+				if (initialDebate.sideAJoined && !initialDebate.sideBJoined) {
+					setUserSide(DebateSide.SIDE_A)
+				} else setUserSide(DebateSide.SIDE_B)
 			} catch (err) {
-				if (isMounted) {
-					setError(err instanceof Error ? err.message : 'Virhe väittelyn haussa')
-				}
+				setError(err instanceof Error ? err.message : 'Virhe väittelyn haussa')
 			} finally {
-				if (isMounted) {
-					setLoading(false)
-				}
+				setLoading(false)
 			}
 		}
 
@@ -60,100 +52,82 @@ export const useArgumentPage = (roomCode: string | undefined): UseArgumentPageRe
 		// Set up socket event listeners using the service
 		const unsubscribe = debateSocketService.subscribeToDebateEvents(socket, roomCode, {
 			onDebateJoined: payload => {
-				if (isMounted) {
-					console.log('debate_joined', payload)
-					setUserSide(payload.side)
-					setDebate(prevDebate => {
-						if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
-						return {
-							...payload.debate,
-						}
-					})
-				}
+				console.log('debate_joined', payload)
+				setUserSide(payload.side)
+				setDebate(prevDebate => {
+					if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
+					return {
+						...payload.debate,
+					}
+				})
 			},
 			onDebateStarted: payload => {
-				if (isMounted) {
-					setDebate(prevDebate => {
-						if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
-						return {
-							...prevDebate,
-							status: payload.debate.status,
-							sideAJoined: payload.debate.sideAJoined,
-							sideBJoined: payload.debate.sideBJoined,
-							currentTurn: payload.debate.currentTurn,
-							turnEndsAt: payload.debate.turnEndsAt,
-						}
-					})
-				}
+				setDebate(prevDebate => {
+					if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
+					return {
+						...prevDebate,
+						status: payload.debate.status,
+						sideAJoined: payload.debate.sideAJoined,
+						sideBJoined: payload.debate.sideBJoined,
+						currentTurn: payload.debate.currentTurn,
+						turnEndsAt: payload.debate.turnEndsAt,
+					}
+				})
 			},
 			onArgumentsUpdated: payload => {
-				if (isMounted) {
-					setDebate(prevDebate => {
-						if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
-						return {
-							...prevDebate,
-							argumentsRemainingA: payload.argumentsRemainingA,
-							argumentsRemainingB: payload.argumentsRemainingB,
-						}
-					})
-				}
+				setDebate(prevDebate => {
+					if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
+					return {
+						...prevDebate,
+						argumentsRemainingA: payload.argumentsRemainingA,
+						argumentsRemainingB: payload.argumentsRemainingB,
+					}
+				})
 			},
 			onNewMessage: payload => {
-				if (isMounted) {
-					setDebate(prevDebate => {
-						if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
-						return {
-							...prevDebate,
-							messages: [...prevDebate.messages, payload],
-						}
-					})
-				}
+				setDebate(prevDebate => {
+					if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
+					return {
+						...prevDebate,
+						messages: [...prevDebate.messages, payload],
+					}
+				})
 			},
 			onDebateEnded: payload => {
-				if (isMounted) {
-					setDebate(prevDebate => {
-						if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
-						return {
-							...prevDebate,
-							status: payload.debate.status,
-						}
-					})
-				}
+				setDebate(prevDebate => {
+					if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
+					return {
+						...prevDebate,
+						status: payload.debate.status,
+					}
+				})
 			},
 			onTurnUpdated: payload => {
-				if (isMounted) {
-					setDebate(prevDebate => {
-						if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
-						return {
-							...prevDebate,
-							currentTurn: payload.currentTurn,
-							turnEndsAt: payload.turnEndsAt,
-						}
-					})
-				}
+				setDebate(prevDebate => {
+					if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
+					return {
+						...prevDebate,
+						currentTurn: payload.currentTurn,
+						turnEndsAt: payload.turnEndsAt,
+					}
+				})
 			},
 			onEvaluationReady: payload => {
-				if (isMounted) {
-					setDebate(prevDebate => {
-						if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
-						return {
-							...prevDebate,
-							evaluation: payload.evaluation,
-							status: payload.evaluation ? DebateStatus.EVALUATED : prevDebate.status,
-						}
-					})
-				}
+				setDebate(prevDebate => {
+					if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
+					return {
+						...prevDebate,
+						evaluation: payload.evaluation,
+						status: payload.evaluation ? DebateStatus.EVALUATED : prevDebate.status,
+					}
+				})
 			},
 			onError: payload => {
-				if (isMounted) {
-					setError(payload.message)
-				}
+				setError(payload.message)
 			},
 		})
 
-		// Cleanup function
 		return () => {
-			isMounted = false
 			unsubscribe()
 		}
 	}, [roomCode])
