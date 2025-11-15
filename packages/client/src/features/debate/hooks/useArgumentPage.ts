@@ -19,25 +19,26 @@ export const useArgumentPage = (roomCode: string | undefined): UseArgumentPageRe
 	const [userSide, setUserSide] = useState<DebateSide | null>(null)
 	const [error, setError] = useState<string | null>(null)
 
+	const fetchInitialDebate = async () => {
+		if (!roomCode) return setError('Huonekoodi puuttuu')
+		setError(null)
+
+		try {
+			const initialDebate = await getDebateInfo(roomCode)
+
+			setDebate(initialDebate)
+			// If user created the debate (sideAJoined is true and sideBJoined is false), they are SIDE_A
+			// Otherwise, we'll determine from debate_joined event
+			if (initialDebate.sideAJoined && !initialDebate.sideBJoined) {
+				setUserSide(DebateSide.SIDE_A)
+			} else setUserSide(DebateSide.SIDE_B)
+		} catch (err) {
+			setError('Virhe väittelyn haussa')
+		}
+	}
+
 	useEffect(() => {
 		if (!roomCode) return setError('Huonekoodi puuttuu')
-
-		const fetchInitialDebate = async () => {
-			setError(null)
-
-			try {
-				const initialDebate = await getDebateInfo(roomCode)
-
-				setDebate(initialDebate)
-				// If user created the debate (sideAJoined is true and sideBJoined is false), they are SIDE_A
-				// Otherwise, we'll determine from debate_joined event
-				if (initialDebate.sideAJoined && !initialDebate.sideBJoined) {
-					setUserSide(DebateSide.SIDE_A)
-				} else setUserSide(DebateSide.SIDE_B)
-			} catch (err) {
-				setError('Virhe väittelyn haussa')
-			}
-		}
 
 		fetchInitialDebate()
 
