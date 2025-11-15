@@ -1,15 +1,10 @@
 import type {
-	ArgumentsUpdatedEvent,
 	Debate,
 	DebateCreatedEvent,
-	DebateEndedEvent,
 	DebateInfoEvent,
 	DebateJoinedEvent,
-	DebateStartedEvent,
+	DebateUpdateEvent,
 	ErrorEvent,
-	EvaluationReadyEvent,
-	NewMessageEvent,
-	TurnUpdatedEvent,
 } from '@argumentor/shared'
 import type { DebateClientSocket } from './socketClient'
 import { ensureSocketConnected } from './socketClient'
@@ -19,12 +14,7 @@ import { ensureSocketConnected } from './socketClient'
  */
 export interface DebateEventCallbacks {
 	onDebateJoined?: (payload: DebateJoinedEvent) => void
-	onDebateStarted?: (payload: DebateStartedEvent) => void
-	onArgumentsUpdated?: (payload: ArgumentsUpdatedEvent) => void
-	onTurnUpdated?: (payload: TurnUpdatedEvent) => void
-	onNewMessage?: (payload: NewMessageEvent) => void
-	onDebateEnded?: (payload: DebateEndedEvent) => void
-	onEvaluationReady?: (payload: EvaluationReadyEvent) => void
+	onDebateUpdate?: (payload: DebateUpdateEvent) => void
 	onError?: (payload: ErrorEvent) => void
 }
 
@@ -111,57 +101,25 @@ export const debateSocketService = {
 			}
 		}
 
-		const handleDebateStarted = (payload: DebateStartedEvent) => {
+		const handleDebateUpdate = (payload: DebateUpdateEvent) => {
 			if (payload.debate.roomCode === roomCode) {
-				callbacks.onDebateStarted?.(payload)
+				callbacks.onDebateUpdate?.(payload)
 			}
-		}
-
-		const handleArgumentsUpdated = (payload: ArgumentsUpdatedEvent) => {
-			callbacks.onArgumentsUpdated?.(payload)
-		}
-
-		const handleTurnUpdated = (payload: TurnUpdatedEvent) => {
-			callbacks.onTurnUpdated?.(payload)
-		}
-
-		const handleNewMessage = (payload: NewMessageEvent) => {
-			callbacks.onNewMessage?.(payload)
-		}
-
-		const handleDebateEnded = (payload: DebateEndedEvent) => {
-			if (payload.debate.roomCode === roomCode) {
-				callbacks.onDebateEnded?.(payload)
-			}
-		}
-
-		const handleEvaluationReady = (payload: EvaluationReadyEvent) => {
-			callbacks.onEvaluationReady?.(payload)
 		}
 
 		const handleError = (payload: ErrorEvent) => {
 			callbacks.onError?.(payload)
 		}
 
-		// Register all listeners
+		// Register listeners
 		socket.on('debate_joined', handleDebateJoined)
-		socket.on('debate_started', handleDebateStarted)
-		socket.on('arguments_updated', handleArgumentsUpdated)
-		socket.on('turn_updated', handleTurnUpdated)
-		socket.on('new_message', handleNewMessage)
-		socket.on('debate_ended', handleDebateEnded)
-		socket.on('evaluation_ready', handleEvaluationReady)
+		socket.on('debate_update', handleDebateUpdate)
 		socket.on('error', handleError)
 
 		// Return unsubscribe function
 		return () => {
 			socket.off('debate_joined', handleDebateJoined)
-			socket.off('debate_started', handleDebateStarted)
-			socket.off('arguments_updated', handleArgumentsUpdated)
-			socket.off('turn_updated', handleTurnUpdated)
-			socket.off('new_message', handleNewMessage)
-			socket.off('debate_ended', handleDebateEnded)
-			socket.off('evaluation_ready', handleEvaluationReady)
+			socket.off('debate_update', handleDebateUpdate)
 			socket.off('error', handleError)
 		}
 	},

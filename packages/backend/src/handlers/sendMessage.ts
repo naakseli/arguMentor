@@ -118,34 +118,19 @@ export const handleSendMessage = async (
 			socket.to(roomCode).emit(event, ...args)
 		}
 
-		broadcast('new_message', {
-			id: message.id,
-			side: message.side,
-			content: message.content,
-			timestamp: message.timestamp,
-		})
-
-		broadcast('arguments_updated', {
-			argumentsRemainingA,
-			argumentsRemainingB,
-		})
-
-		broadcast('turn_updated', {
-			currentTurn: debate.currentTurn,
-			turnEndsAt: debate.turnEndsAt,
-		})
+		// Broadcast the updated debate state to all participants
+		broadcast('debate_update', { debate })
 
 		if (debateJustEnded || debate.status === DebateStatus.ENDED) {
 			// Debate ended due to this message -> clear possible timer and notify clients
 			clearTurnTimer(roomCode)
-			broadcast('debate_ended', { debate })
-			// Käynnistetään AI-arviointi
-			const evaluatedDebate = await evaluateAndFinalizeDebate(roomCode)
-			if (!evaluatedDebate || !evaluatedDebate.evaluation) return
 
-			broadcast('evaluation_ready', {
-				evaluation: evaluatedDebate.evaluation,
-			})
+			// Start AI evaluation
+			const evaluatedDebate = await evaluateAndFinalizeDebate(roomCode)
+			if (evaluatedDebate?.evaluation) {
+				// Broadcast final state with evaluation
+				broadcast('debate_update', { debate: evaluatedDebate })
+			}
 		} else if (debate.currentTurn != null) {
 			// Start timer for the next turn
 			startTurnTimer(debate)

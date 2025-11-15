@@ -40,8 +40,7 @@ export const handleJoinDebate = async (
 			// Start the debate and randomly choose which side begins
 			debate.status = DebateStatus.ACTIVE
 
-			const startingSide =
-				Math.random() < 0.5 ? DebateSide.SIDE_A : DebateSide.SIDE_B
+			const startingSide = Math.random() < 0.5 ? DebateSide.SIDE_A : DebateSide.SIDE_B
 
 			debate.currentTurn = startingSide
 			debate.turnEndsAt = new Date(Date.now() + 60_000).toISOString()
@@ -65,8 +64,8 @@ export const handleJoinDebate = async (
 
 		// If debate just started, notify all participants and start the timer
 		if (debate.status === DebateStatus.ACTIVE) {
-			socket.emit('debate_started', { debate })
-			socket.to(roomCode).emit('debate_started', { debate })
+			socket.emit('debate_update', { debate })
+			socket.to(roomCode).emit('debate_update', { debate })
 
 			if (debate.currentTurn != null) {
 				startTurnTimer(debate)

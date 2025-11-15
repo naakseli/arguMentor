@@ -106,20 +106,10 @@ const handleTurnTimeout = async (roomCode: string): Promise<void> => {
 
 	await debateService.saveDebate(updatedDebate)
 
-	// Broadcast updates to all clients in the room
-	io.to(roomCode).emit('arguments_updated', {
-		argumentsRemainingA: updatedDebate.argumentsRemainingA,
-		argumentsRemainingB: updatedDebate.argumentsRemainingB,
-	})
+	// Broadcast the updated debate state to all clients in the room
+	io.to(roomCode).emit('debate_update', { debate: updatedDebate })
 
-	io.to(roomCode).emit('turn_updated', {
-		currentTurn: updatedDebate.currentTurn,
-		turnEndsAt: updatedDebate.turnEndsAt,
-	})
-
-	if (updatedDebate.status !== DebateStatus.ACTIVE) {
-		io.to(roomCode).emit('debate_ended', { debate: updatedDebate })
-	} else if (updatedDebate.currentTurn != null) {
+	if (updatedDebate.status === DebateStatus.ACTIVE && updatedDebate.currentTurn != null) {
 		// Start next turn timer
 		startTurnTimer(updatedDebate)
 	}

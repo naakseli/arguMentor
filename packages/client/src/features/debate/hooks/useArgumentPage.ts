@@ -1,5 +1,5 @@
 import type { Debate } from '@argumentor/shared'
-import { DebateSide, DebateStatus } from '@argumentor/shared'
+import { DebateSide } from '@argumentor/shared'
 import { useEffect, useState } from 'react'
 import { useSocket } from '../../../providers/SocketProvider'
 import { debateSocketService } from '../../../services/debateSocketService'
@@ -46,73 +46,10 @@ export const useArgumentPage = (roomCode: string | undefined): UseArgumentPageRe
 			onDebateJoined: payload => {
 				console.log('debate_joined', payload)
 				setUserSide(payload.side)
-				setDebate(prevDebate => {
-					if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
-					return {
-						...payload.debate,
-					}
-				})
+				setDebate(payload.debate)
 			},
-			onDebateStarted: payload => {
-				setDebate(prevDebate => {
-					if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
-					return {
-						...prevDebate,
-						status: payload.debate.status,
-						sideAJoined: payload.debate.sideAJoined,
-						sideBJoined: payload.debate.sideBJoined,
-						currentTurn: payload.debate.currentTurn,
-						turnEndsAt: payload.debate.turnEndsAt,
-					}
-				})
-			},
-			onArgumentsUpdated: payload => {
-				setDebate(prevDebate => {
-					if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
-					return {
-						...prevDebate,
-						argumentsRemainingA: payload.argumentsRemainingA,
-						argumentsRemainingB: payload.argumentsRemainingB,
-					}
-				})
-			},
-			onNewMessage: payload => {
-				setDebate(prevDebate => {
-					if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
-					return {
-						...prevDebate,
-						messages: [...prevDebate.messages, payload],
-					}
-				})
-			},
-			onDebateEnded: payload => {
-				setDebate(prevDebate => {
-					if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
-					return {
-						...prevDebate,
-						status: payload.debate.status,
-					}
-				})
-			},
-			onTurnUpdated: payload => {
-				setDebate(prevDebate => {
-					if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
-					return {
-						...prevDebate,
-						currentTurn: payload.currentTurn,
-						turnEndsAt: payload.turnEndsAt,
-					}
-				})
-			},
-			onEvaluationReady: payload => {
-				setDebate(prevDebate => {
-					if (!prevDebate || prevDebate.roomCode !== roomCode) return prevDebate
-					return {
-						...prevDebate,
-						evaluation: payload.evaluation,
-						status: payload.evaluation ? DebateStatus.EVALUATED : prevDebate.status,
-					}
-				})
+			onDebateUpdate: payload => {
+				setDebate(payload.debate)
 			},
 			onError: payload => {
 				setError(payload.message)
