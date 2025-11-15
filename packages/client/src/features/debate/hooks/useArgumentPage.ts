@@ -8,27 +8,21 @@ import { useDebate } from './useDebate'
 interface UseArgumentPageResult {
 	debate: Debate | null
 	userSide: DebateSide | null
-	loading: boolean
+	isLoading: boolean
 	error: string | null
 }
 
 export const useArgumentPage = (roomCode: string | undefined): UseArgumentPageResult => {
 	const socket = useSocket()
-	const { getDebateInfo } = useDebate()
+	const { getDebateInfo, isLoading } = useDebate()
 	const [debate, setDebate] = useState<Debate | null>(null)
 	const [userSide, setUserSide] = useState<DebateSide | null>(null)
-	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
 
 	useEffect(() => {
-		if (!roomCode) {
-			setLoading(false)
-			setError('Huonekoodi puuttuu')
-			return
-		}
+		if (!roomCode) return setError('Huonekoodi puuttuu')
 
 		const fetchInitialDebate = async () => {
-			setLoading(true)
 			setError(null)
 
 			try {
@@ -41,9 +35,7 @@ export const useArgumentPage = (roomCode: string | undefined): UseArgumentPageRe
 					setUserSide(DebateSide.SIDE_A)
 				} else setUserSide(DebateSide.SIDE_B)
 			} catch (err) {
-				setError(err instanceof Error ? err.message : 'Virhe väittelyn haussa')
-			} finally {
-				setLoading(false)
+				setError('Virhe väittelyn haussa')
 			}
 		}
 
@@ -135,7 +127,7 @@ export const useArgumentPage = (roomCode: string | undefined): UseArgumentPageRe
 	return {
 		debate,
 		userSide,
-		loading,
+		isLoading,
 		error,
 	}
 }

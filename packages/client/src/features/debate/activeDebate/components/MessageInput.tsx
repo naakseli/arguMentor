@@ -15,26 +15,17 @@ const MessageInput = ({ onMessageSent, argumentsRemaining, isUserTurn }: Message
 	const [error, setError] = useState<string | null>(null)
 
 	const handleSendMessage = async () => {
-		if (!isUserTurn) {
-			setError('Et voi lähettää viestiä, koska ei ole sinun vuorosi.')
-			return
-		}
-
-		if (!messageInput.trim()) {
-			return
-		}
+		if (!isUserTurn) return setError('Et voi lähettää viestiä, koska ei ole sinun vuorosi.')
+		if (!messageInput.trim()) return
 
 		setError(null)
 		try {
 			await sendMessage(messageInput)
 			setMessageInput('')
 			// Trigger scroll after message is sent
-			setTimeout(() => {
-				onMessageSent?.()
-			}, 100)
+			onMessageSent?.()
 		} catch (err) {
-			const message = err instanceof Error ? err.message : 'Viestin lähetys epäonnistui'
-			setError(message)
+			setError('Viestin lähetys epäonnistui. Yritä uudelleen.')
 			console.error('Failed to send message', err)
 		}
 	}
