@@ -1,140 +1,45 @@
-import type { SendMessagePayload, ServerToClientEvents } from '@argumentor/shared'
+import type { Debate, SendMessagePayload } from '@argumentor/shared'
 import { DebateSide, DebateStatus } from '@argumentor/shared'
 import { randomUUID } from 'crypto'
 import { evaluateAndFinalizeDebate } from '../services/aiEvaluationService.js'
 import * as debateService from '../services/debateService.js'
-import { clearTurnTimer, startTurnTimer } from '../services/turnTimerService.js'
+import { clearTurnTimer } from '../services/turnTimerService.js'
 import type { DebateSocket } from '../types/socket.js'
 import { emitSocketError, handleSocketHandlerError } from '../utils/socketError.js'
+import { sendMessageValidator } from '../validators/sendMessageValidator.js'
 
-const VALID_SIDES = new Set<DebateSide>([DebateSide.SIDE_A, DebateSide.SIDE_B])
+const TURN_DURATION_MS = 60_000
+type DebateMessage = Debate['messages'][number]
 
 export const handleSendMessage = async (
 	socket: DebateSocket,
 	payload: SendMessagePayload
 ): Promise<void> => {
-	const roomCode = socket.data.roomCode
-	const side = socket.data.side
-
-	if (!roomCode || !side) {
-		emitSocketError(socket, 'NOT_IN_DEBATE', 'You must join a debate before sending messages')
-		return
-	}
-
-	const content = payload?.content
-
-	if (!content) {
-		emitSocketError(socket, 'INVALID_MESSAGE', 'Message content is required and cannot be empty')
-		return
-	}
-
 	try {
-		const debate = await debateService.getDebate(roomCode)
-
-		if (!debate) {
-			emitSocketError(socket, 'DEBATE_NOT_FOUND', 'Debate room not found')
+		const validation = await sendMessageValidator(socket, payload)
+		if (!validation.ok) {
+			const { code, message } = validation.error
+			emitSocketError(socket, code, message)
 			return
 		}
 
-		if (debate.status !== DebateStatus.ACTIVE) {
-			emitSocketError(socket, 'DEBATE_NOT_ACTIVE', 'Debate is not active')
-			return
-		}
+		const { debate, roomCode, side, content } = validation.data
+		const { updatedDebate, message, debateEnded } = addMessageAndAdvanceTurn(debate, side, content)
 
-		if (!VALID_SIDES.has(side)) {
-			emitSocketError(socket, 'INVALID_SIDE', 'Invalid debate side')
-			return
-		}
-
-		// Messages can only be sent on the sender's turn
-		if (debate.currentTurn !== side) {
-			emitSocketError(socket, 'NOT_YOUR_TURN', 'You cannot send a message when it is not your turn')
-			return
-		}
-
-		const isSideA = side === DebateSide.SIDE_A
-		const argumentsRemaining = isSideA ? debate.argumentsRemainingA : debate.argumentsRemainingB
-
-		if (argumentsRemaining <= 0) {
-			emitSocketError(socket, 'NO_ARGUMENTS_LEFT', 'You have no arguments remaining')
-			return
-		}
-
-		const timestamp = new Date().toISOString()
-
-		const message = {
-			id: randomUUID(),
-			side,
-			content,
-			timestamp,
-		}
-
-		debate.messages.push(message)
-
-		if (isSideA) {
-			debate.argumentsRemainingA -= 1
-		} else {
-			debate.argumentsRemainingB -= 1
-		}
-
-		const argumentsRemainingA = debate.argumentsRemainingA
-		const argumentsRemainingB = debate.argumentsRemainingB
-
-		const debateJustEnded = argumentsRemainingA === 0 && argumentsRemainingB === 0
-
-		if (debateJustEnded) {
-			debate.status = DebateStatus.ENDED
-			debate.currentTurn = null
-			debate.turnEndsAt = undefined
-		} else {
-			// Switch turn to the opponent if they still have arguments left
-			const nextSide = isSideA ? DebateSide.SIDE_B : DebateSide.SIDE_A
-			const nextHasArguments =
-				(nextSide === DebateSide.SIDE_A && argumentsRemainingA > 0) ||
-				(nextSide === DebateSide.SIDE_B && argumentsRemainingB > 0)
-
-			if (nextHasArguments) {
-				debate.currentTurn = nextSide
-				debate.turnEndsAt = new Date(Date.now() + 60_000).toISOString()
-			} else {
-				// Opponent has no arguments left -> debate ends
-				debate.status = DebateStatus.ENDED
-				debate.currentTurn = null
-				debate.turnEndsAt = undefined
-			}
-		}
-
-		await debateService.saveDebate(debate)
+		await debateService.saveDebate(updatedDebate)
 
 		socket.emit('message_sent', {
 			messageId: message.id,
-			timestamp,
 		})
 
-		const broadcast = <E extends keyof ServerToClientEvents>(
-			event: E,
-			...args: Parameters<ServerToClientEvents[E]>
-		): void => {
-			socket.emit(event, ...args)
-			socket.to(roomCode).emit(event, ...args)
-		}
+		broadcastDebateUpdate(socket, roomCode, updatedDebate)
 
-		// Broadcast the updated debate state to all participants
-		broadcast('debate_update', { debate })
-
-		if (debateJustEnded || debate.status === DebateStatus.ENDED) {
-			// Debate ended due to this message -> clear possible timer and notify clients
+		if (debateEnded) {
 			clearTurnTimer(roomCode)
 
-			// Start AI evaluation
+			// Get evaluation and broadcast final state
 			const evaluatedDebate = await evaluateAndFinalizeDebate(roomCode)
-			if (evaluatedDebate?.evaluation) {
-				// Broadcast final state with evaluation
-				broadcast('debate_update', { debate: evaluatedDebate })
-			}
-		} else if (debate.currentTurn != null) {
-			// Start timer for the next turn
-			startTurnTimer(debate)
+			broadcastDebateUpdate(socket, roomCode, evaluatedDebate)
 		}
 	} catch (error) {
 		handleSocketHandlerError(
@@ -145,4 +50,55 @@ export const handleSendMessage = async (
 			'Error sending message'
 		)
 	}
+}
+
+type MessageApplicationResult = {
+	updatedDebate: Debate
+	message: DebateMessage
+	debateEnded: boolean
+}
+
+const addMessageAndAdvanceTurn = (
+	debate: Debate,
+	side: DebateSide,
+	content: string
+): MessageApplicationResult => {
+	const message: DebateMessage = {
+		id: randomUUID(),
+		side,
+		content,
+	}
+
+	const argumentsRemainingA =
+		side === DebateSide.SIDE_A ? debate.argumentsRemainingA - 1 : debate.argumentsRemainingA
+	const argumentsRemainingB =
+		side === DebateSide.SIDE_B ? debate.argumentsRemainingB - 1 : debate.argumentsRemainingB
+
+	const nextSide = side === DebateSide.SIDE_A ? DebateSide.SIDE_B : DebateSide.SIDE_A
+	const nextHasArguments =
+		(nextSide === DebateSide.SIDE_A && argumentsRemainingA > 0) ||
+		(nextSide === DebateSide.SIDE_B && argumentsRemainingB > 0)
+
+	const debateEnded =
+		argumentsRemainingA === 0 && argumentsRemainingB === 0 ? true : !nextHasArguments
+	const status = debateEnded ? DebateStatus.ENDED : DebateStatus.ACTIVE
+	const currentTurn = debateEnded ? null : nextSide
+	const turnEndsAt = debateEnded ? undefined : new Date(Date.now() + TURN_DURATION_MS).toISOString()
+
+	const updatedDebate: Debate = {
+		...debate,
+		messages: [...debate.messages, message],
+		argumentsRemainingA,
+		argumentsRemainingB,
+		status,
+		currentTurn,
+		turnEndsAt,
+	}
+
+	return { updatedDebate, message, debateEnded }
+}
+
+const broadcastDebateUpdate = (socket: DebateSocket, roomCode: string, debate: Debate): void => {
+	socket.emit('debate_update', { debate })
+	socket.to(roomCode).emit('debate_update', { debate })
 }

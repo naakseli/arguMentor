@@ -104,10 +104,10 @@ export const evaluateDebate = async (debate: Debate): Promise<Evaluation> => {
 	return evaluation
 }
 
-export const evaluateAndFinalizeDebate = async (roomCode: string): Promise<Debate | null> => {
+export const evaluateAndFinalizeDebate = async (roomCode: string): Promise<Debate> => {
 	const latestDebate = await debateService.getDebate(roomCode)
 
-	if (!latestDebate) return null
+	if (!latestDebate) throw new Error('Debate not found')
 
 	const evaluation = await evaluateDebate(latestDebate)
 

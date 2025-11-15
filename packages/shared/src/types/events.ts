@@ -40,7 +40,6 @@ export interface DebateUpdateEvent {
 
 export interface MessageSentEvent {
 	messageId: string
-	timestamp: string
 }
 
 export interface ErrorEvent {
