@@ -16,7 +16,8 @@ const deserializeDebate = (data: string): Debate | null => {
 }
 
 export const getDebate = async (roomCode: string): Promise<Debate | null> => {
-	const data = await redis.getClient().get(getKey(roomCode))
+	const key = getKey(roomCode)
+	const data = await redis.getClient().get(key)
 	return data ? deserializeDebate(data) : null
 }
 
@@ -26,6 +27,7 @@ export const saveDebate = (debate: Debate) =>
 export const deleteDebate = (roomCode: string) => redis.getClient().del(getKey(roomCode))
 
 export const debateExists = async (roomCode: string): Promise<boolean> => {
-	const result = await redis.getClient().exists(getKey(roomCode))
+	const key = getKey(roomCode)
+	const result = await redis.getClient().exists(key)
 	return result === 1
 }
