@@ -15,9 +15,9 @@ export const defaultTopicOptions = [
 		topicSideB: 'Tee',
 	},
 	{
-		topic: 'Aamuvirkku vai iltavirkku?',
-		topicSideA: 'Aamuvirkku',
-		topicSideB: 'Iltavirkku',
+		topic: 'Aamu vai ilta?',
+		topicSideA: 'Aamu',
+		topicSideB: 'Iltu',
 	},
 	{
 		topic: 'Kesä vai talvi?',

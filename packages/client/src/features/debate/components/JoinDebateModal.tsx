@@ -13,9 +13,9 @@ const JoinDebateModal = ({ opened, onClose, onConfirm, loading, error }: JoinDeb
 	const [roomCode, setRoomCode] = useState('')
 
 	const handleConfirm = () => {
-		if (roomCode.trim()) {
-			onConfirm(roomCode.trim().toUpperCase())
-		}
+		if (!roomCode) return
+
+		onConfirm(roomCode)
 	}
 
 	const handleClose = () => {
@@ -31,19 +31,18 @@ const JoinDebateModal = ({ opened, onClose, onConfirm, loading, error }: JoinDeb
 				</Text>
 				<TextInput
 					label='Huonekoodi'
-					placeholder='Esim. ABC123'
 					value={roomCode}
-					onChange={e => setRoomCode(e.currentTarget.value.toUpperCase())}
+					onChange={e => setRoomCode(e.currentTarget.value)}
 					maxLength={6}
 					error={error}
 					disabled={loading}
 					onKeyDown={e => {
-						if (e.key === 'Enter' && roomCode.trim()) {
+						if (e.key === 'Enter' && roomCode) {
 							handleConfirm()
 						}
 					}}
 				/>
-				<Button onClick={handleConfirm} loading={loading} disabled={!roomCode.trim()}>
+				<Button onClick={handleConfirm} loading={loading} disabled={!roomCode}>
 					Liity
 				</Button>
 			</Stack>
