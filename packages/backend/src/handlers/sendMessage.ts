@@ -21,7 +21,8 @@ export const handleSendMessage = async (
 		return
 	}
 
-	const content = payload?.content?.trim()
+	const content = payload?.content
+
 	if (!content) {
 		emitSocketError(socket, 'INVALID_MESSAGE', 'Message content is required and cannot be empty')
 		return

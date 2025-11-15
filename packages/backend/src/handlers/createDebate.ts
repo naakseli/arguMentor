@@ -11,7 +11,7 @@ export const handleCreateDebate = async (
 ): Promise<void> => {
 	try {
 		// Validate topic
-		if (!payload.topic || typeof payload.topic !== 'string' || payload.topic.trim().length === 0) {
+		if (!payload.topic || typeof payload.topic !== 'string' || payload.topic.length === 0) {
 			emitSocketError(socket, 'INVALID_TOPIC', 'Topic is required and cannot be empty')
 			return
 		}

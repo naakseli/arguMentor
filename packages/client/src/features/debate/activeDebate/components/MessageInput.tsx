@@ -16,7 +16,7 @@ const MessageInput = ({ onMessageSent, argumentsRemaining, isUserTurn }: Message
 
 	const handleSendMessage = async () => {
 		if (!isUserTurn) return setError('Et voi lähettää viestiä, koska ei ole sinun vuorosi.')
-		if (!messageInput.trim()) return
+		if (!messageInput) return
 
 		setError(null)
 		try {
@@ -90,7 +90,7 @@ const MessageInput = ({ onMessageSent, argumentsRemaining, isUserTurn }: Message
 						leftSection={<IconSend size={16} />}
 						onClick={handleSendMessage}
 						loading={isSending}
-						disabled={!isUserTurn || !messageInput.trim()}
+						disabled={!isUserTurn || !messageInput}
 					>
 						Lähetä
 					</Button>

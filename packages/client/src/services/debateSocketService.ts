@@ -82,7 +82,7 @@ export const debateSocketService = {
 			socket.once('message_sent', () => resolve())
 			socket.once('error', (payload: ErrorEvent) => reject(new Error(payload.message)))
 
-			socket.emit('send_message', { content: content.trim() })
+			socket.emit('send_message', { content })
 		})
 	},
 

@@ -16,7 +16,7 @@ export const handleJoinDebate = async (
 			return
 		}
 
-		const roomCode = payload.roomCode.trim().toUpperCase()
+		const roomCode = payload.roomCode
 
 		// Check if debate exists
 		const debate = await debateService.getDebate(roomCode)
