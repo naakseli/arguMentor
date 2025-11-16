@@ -27,7 +27,6 @@ const DebateView = ({ debate, userSide }: DebateViewProps) => {
 
 	return (
 		<Stack gap='md'>
-			{isSidesSelected && <DebateHeader debate={debate} userSide={userSide} />}
 			{!isSidesSelected && userSide === DebateSide.SIDE_B && (
 				<SideSelectionPrompt
 					topic={debate.topic}
@@ -46,13 +45,19 @@ const DebateView = ({ debate, userSide }: DebateViewProps) => {
 					Vastustaja valitsee parhaillaan puoltaan. Väittely alkaa heti, kun valinta on tehty.
 				</Alert>
 			)}
+
+			{isSidesSelected && <DebateHeader debate={debate} userSide={userSide} />}
+
 			{isSidesSelected && (
 				<MessageList debate={debate} userSide={userSide} scrollTrigger={scrollTrigger} />
 			)}
+
 			{!isDebateEnded && isDebateActive && (
 				<MessageInput onMessageSent={handleMessageSent} debate={debate} userSide={userSide} />
 			)}
+
 			{isDebateEnded && !debate.evaluation && <DebateEndedAlert />}
+
 			{debate.evaluation && (
 				<EvaluationDisplay
 					evaluation={debate.evaluation}
