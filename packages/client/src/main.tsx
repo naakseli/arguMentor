@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Route, Routes } from 'react-router'
 import ArgumentPage from './features/debate/pages/ArgumentPage'
 import HomePage from './layout/HomePage'
+import { IdentityProvider } from './providers/IdentityProvider'
 import { SocketProvider } from './providers/SocketProvider'
 
 const queryClient = new QueryClient()
@@ -13,14 +14,16 @@ const queryClient = new QueryClient()
 createRoot(document.getElementById('root')!).render(
 	<StrictMode>
 		<MantineProvider>
-			<SocketProvider>
-				<BrowserRouter>
-					<Routes>
-						<Route path='' element={<HomePage />} />
-						<Route path='/argument/:argumentCode' element={<ArgumentPage />} />
-					</Routes>
-				</BrowserRouter>
-			</SocketProvider>
+			<IdentityProvider>
+				<SocketProvider>
+					<BrowserRouter>
+						<Routes>
+							<Route path='' element={<HomePage />} />
+							<Route path='/argument/:argumentCode' element={<ArgumentPage />} />
+						</Routes>
+					</BrowserRouter>
+				</SocketProvider>
+			</IdentityProvider>
 		</MantineProvider>
 	</StrictMode>
 )

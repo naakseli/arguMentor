@@ -67,6 +67,7 @@ export interface ServerToClientEvents {
 }
 
 export interface DebateSocketData {
+	username: string
 	roomCode?: string
 	side?: DebateSide
 }
