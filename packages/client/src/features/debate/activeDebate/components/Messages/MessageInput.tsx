@@ -1,7 +1,7 @@
 import { Alert, Button, Card, Group, Stack, Text, Textarea } from '@mantine/core'
 import { IconInfoCircle, IconSend } from '@tabler/icons-react'
 import { useState } from 'react'
-import { useDebate } from '../../hooks/useDebate'
+import { useDebate } from '../../../hooks/useDebate'
 
 interface MessageInputProps {
 	onMessageSent?: () => void

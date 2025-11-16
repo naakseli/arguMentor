@@ -5,10 +5,10 @@ import { IconInfoCircle } from '@tabler/icons-react'
 import { useState } from 'react'
 import DebateEndedAlert from '../components/DebateEndedAlert'
 import { useDebate } from '../hooks/useDebate'
-import DebateHeader from './components/DebateHeader'
 import EvaluationDisplay from './components/EvaluationDisplay'
-import MessageInput from './components/MessageInput'
-import MessageList from './components/MessageList'
+import DebateHeader from './components/header/DebateHeader'
+import MessageInput from './components/Messages/MessageInput'
+import MessageList from './components/Messages/MessageList'
 import SideSelectionPrompt from './components/SideSelectionPrompt'
 
 interface DebateViewProps {

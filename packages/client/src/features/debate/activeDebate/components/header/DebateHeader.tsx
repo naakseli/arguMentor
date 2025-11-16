@@ -2,9 +2,10 @@ import type { Debate } from '@argumentor/shared'
 import { DebateSide, DebateStatus } from '@argumentor/shared'
 import { Alert, Box, Card, Group, Stack, Text, Title } from '@mantine/core'
 import { IconInfoCircle } from '@tabler/icons-react'
-import { useTimer } from '../../hooks/useTimer'
-import useSideVariables from '../hooks/useSideVariables'
+import { useTimer } from '../../../hooks/useTimer'
+import useSideVariables from './hooks/useSideVariables'
 import PerspectiveCard from './PerspectiveCards'
+import TurnTimer from './TurnTimer'
 
 interface DebateHeaderProps {
 	debate: Debate
@@ -24,29 +25,12 @@ const DebateHeader = ({ debate, userSide }: DebateHeaderProps) => {
 				<Title order={4} mb='xs'>
 					{debate.topic}
 				</Title>
-				{/* Turn & timer - pääroolissa */}
-				{isActiveTurn && userSide && (
-					<Group justify='space-between' align='center'>
-						<Stack gap={2}>
-							<Text size='xs' c='dimmed'>
-								Nyt vuorossa
-							</Text>
-							<Text fw={700} size='xl' c={isUserTurn ? 'green' : 'dimmed'}>
-								{isUserTurn ? 'Sinun vuorosi' : 'Vastustajan vuoro'}
-							</Text>
-						</Stack>
-						{secondsRemaining !== null && (
-							<Stack gap={2} align='flex-end'>
-								<Text size='xs' c='dimmed'>
-									Aikaa jäljellä
-								</Text>
-								<Text fw={700} size='xl' c={secondsRemaining <= 10 ? 'red' : 'dark'}>
-									{Math.floor(secondsRemaining / 60)}:{`${secondsRemaining % 60}`.padStart(2, '0')}
-								</Text>
-							</Stack>
-						)}
-					</Group>
-				)}
+				<TurnTimer
+					isActiveTurn={isActiveTurn}
+					userSide={userSide}
+					isUserTurn={isUserTurn}
+					secondsRemaining={secondsRemaining}
+				/>
 
 				<Group gap='md' align='stretch' grow>
 					{perspectiveCards.map(card => (

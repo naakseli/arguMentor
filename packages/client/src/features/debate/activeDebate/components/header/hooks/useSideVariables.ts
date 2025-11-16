@@ -1,7 +1,7 @@
 import { Debate, DebateSide } from '@argumentor/shared'
 import type { MantineColor } from '@mantine/core'
 import { useMemo } from 'react'
-import type { PerspectiveCardData } from '../components/PerspectiveCards'
+import type { PerspectiveCardData } from '../PerspectiveCards'
 
 const getOpponentSide = (side: DebateSide) =>
 	side === DebateSide.SIDE_A ? DebateSide.SIDE_B : DebateSide.SIDE_A
