@@ -13,18 +13,28 @@ const openai = new OpenAI({
 	},
 })
 
+const getDebaterName = (name: string | null | undefined, fallback: string): string => {
+	const trimmed = name?.trim()
+	return trimmed && trimmed.length > 0 ? trimmed : fallback
+}
+
 const formatDebateForPrompt = (debate: Debate): string => {
+	const sideADisplayName = getDebaterName(debate.sideAName, 'Väittelijä A')
+	const sideBDisplayName = getDebaterName(debate.sideBName, 'Väittelijä B')
+	const sideALabel = `${sideADisplayName}`
+	const sideBLabel = `${sideBDisplayName}`
+
 	const headerLines = [
 		`Aihe: ${debate.topic}`,
-		`Puoli A: ${debate.topicSideA} (SIDE_A)`,
-		`Puoli B: ${debate.topicSideB} (SIDE_B)`,
+		`Puoli A (${sideADisplayName}): ${debate.topicSideA}`,
+		`Puoli B (${sideBDisplayName}): ${debate.topicSideB}`,
 		'',
 		'Viestit kronologisessa järjestyksessä:',
 	]
 
 	const messageLines = debate.messages.map((message, index) => {
-		const sideLabel = message.side === DebateSide.SIDE_A ? 'SIDE_A' : 'SIDE_B'
-		return `${index + 1}. ${sideLabel}: ${message.content}`
+		const speakerLabel = message.side === DebateSide.SIDE_A ? sideALabel : sideBLabel
+		return `${index + 1}. ${speakerLabel}: ${message.content}`
 	})
 
 	return [...headerLines, ...messageLines].join('\n')
@@ -32,16 +42,21 @@ const formatDebateForPrompt = (debate: Debate): string => {
 
 export const evaluateDebate = async (debate: Debate): Promise<Evaluation> => {
 	const debateText = formatDebateForPrompt(debate)
+	const sideADisplayName = getDebaterName(debate.sideAName, 'Väittelijä A')
+	const sideBDisplayName = getDebaterName(debate.sideBName, 'Väittelijä B')
 
 	const systemPrompt =
 		'Olet puolueeton väittelytuomari. Arvioi kumpi osapuoli (SIDE_A vai SIDE_B) argumentoi paremmin ' +
 		'alla olevan väittelyn perusteella. Käytä seuraavia arviointikriteerejä: ' +
 		'1) logiikka ja perusteltavuus, 2) vastaukset vastapuolen argumentteihin, 3) tiedon ja faktojen käyttö, ' +
-		'4) yhtenäisyys ja rakenne ' +
+		'4) yhtenäisyys ja rakenne. ' +
+		'Käytä väittelijöiden nimiä aina kun mahdollista viitatessasi heidän argumentteihinsa. ' +
 		'Pisteytä molemmat osapuolet väliltä 0–100 ja kirjoita lyhyt, hyvin jäsennelty perustelu suomeksi. Vastauksen tulee olla suomenkielinen.'
 
 	const userPrompt =
 		debateText +
+		`\n\nMuista: SIDE_A on ${sideADisplayName} ja SIDE_B on ${sideBDisplayName}. ` +
+		'Hyödynnä näitä nimiä arvioinnissasi.' +
 		'\n\nPalauta vastauksesi tiukkana JSON-objektina ilman muuta tekstiä muodossa:\n' +
 		'{\n' +
 		'  "winner": "SIDE_A" | "SIDE_B" | "TIE",\n' +

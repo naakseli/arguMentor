@@ -19,6 +19,8 @@ export interface Debate {
 	topic: string
 	topicSideA: string // Esim. "Kannattaa"
 	topicSideB: string // Esim. "Vastustaa"
+	sideAName: string
+	sideBName?: string | null
 	status: DebateStatus
 	sideAJoined: boolean
 	sideBJoined: boolean
@@ -29,3 +31,5 @@ export interface Debate {
 	messages: Message[]
 	evaluation?: Evaluation
 }
+
+export type TopicSideChoice = 'A' | 'B'

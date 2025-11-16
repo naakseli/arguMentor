@@ -1,0 +1,58 @@
+.card {
+	--card-border-color: var(--mantine-color-gray-3);
+	--card-background: var(--mantine-color-gray-0);
+	--card-background-highlight: var(--mantine-color-gray-1);
+	--card-outline-color: var(--mantine-color-gray-2);
+	--card-header-bg: var(--mantine-color-gray-1);
+	--card-header-bg-highlight: var(--mantine-color-gray-7);
+	--card-header-text: var(--mantine-color-gray-9);
+
+	border: 1px solid var(--card-border-color);
+	border-radius: var(--mantine-radius-md);
+	overflow: hidden;
+	background: var(--card-background);
+	box-shadow: none;
+	transition: box-shadow 150ms ease, border-width 150ms ease;
+}
+
+.card[data-highlighted='true'] {
+	border-width: 2px;
+	background: var(--card-background-highlight);
+	box-shadow: 0 0 0 2px var(--card-outline-color);
+}
+
+.card[data-color='blue'] {
+	--card-border-color: var(--mantine-color-blue-3);
+	--card-background: var(--mantine-color-blue-0);
+	--card-background-highlight: var(--mantine-color-blue-1);
+	--card-outline-color: var(--mantine-color-blue-2);
+	--card-header-bg: var(--mantine-color-blue-1);
+	--card-header-bg-highlight: var(--mantine-color-blue-6);
+	--card-header-text: var(--mantine-color-blue-8);
+}
+
+.card[data-color='green'] {
+	--card-border-color: var(--mantine-color-green-3);
+	--card-background: var(--mantine-color-green-0);
+	--card-background-highlight: var(--mantine-color-green-1);
+	--card-outline-color: var(--mantine-color-green-2);
+	--card-header-bg: var(--mantine-color-green-1);
+	--card-header-bg-highlight: var(--mantine-color-green-6);
+	--card-header-text: var(--mantine-color-green-9);
+}
+
+.cardHeader {
+	letter-spacing: 0.5px;
+	padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+	background: var(--card-header-bg);
+	color: var(--card-header-text);
+	font-weight: 600;
+	width: 100%;
+}
+
+.card[data-highlighted='true'] .cardHeader {
+	background: var(--card-header-bg-highlight);
+	color: var(--mantine-color-white);
+	font-weight: 800;
+}
+

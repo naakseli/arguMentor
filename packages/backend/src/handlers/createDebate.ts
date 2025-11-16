@@ -25,6 +25,8 @@ export const handleCreateDebate = async (
 			topic: payload.topic,
 			topicSideA: payload.topicSideA,
 			topicSideB: payload.topicSideB,
+			sideAName: socket.data.username,
+			sideBName: null,
 			status: DebateStatus.WAITING,
 			sideAJoined: true,
 			sideBJoined: false,

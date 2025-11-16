@@ -5,28 +5,38 @@ import { IconInfoCircle } from '@tabler/icons-react'
 
 interface EvaluationDisplayProps {
 	evaluation: Evaluation
+	sideAName?: string
+	sideBName?: string
 }
 
-const EvaluationDisplay = ({ evaluation }: EvaluationDisplayProps) => {
+const EvaluationDisplay = ({ evaluation, sideAName, sideBName }: EvaluationDisplayProps) => {
+	const nameA = sideAName ?? 'Puoli A'
+	const nameB = sideBName ?? 'Puoli B'
+
 	return (
 		<Alert icon={<IconInfoCircle size={16} />} title='Arviointi' color='blue' variant='light'>
 			<Stack gap='sm'>
 				<Group gap='md'>
 					<Text size='sm'>
 						<Text span fw={600}>
-							Puoli A:
+							{nameA}:
 						</Text>
 						{evaluation.scoreA}/100
 					</Text>
 					<Text size='sm'>
 						<Text span fw={600}>
-							Puoli B:
+							{nameB}:
 						</Text>
 						{evaluation.scoreB}/100
 					</Text>
 					{evaluation.winner && (
 						<Badge color={evaluation.winner === DebateSide.SIDE_A ? 'blue' : 'green'}>
-							Voittaja: {evaluation.winner}
+							Voittaja:{' '}
+							{evaluation.winner === DebateSide.SIDE_A
+								? nameA
+								: evaluation.winner === DebateSide.SIDE_B
+									? nameB
+									: 'Tasapeli'}
 						</Badge>
 					)}
 				</Group>

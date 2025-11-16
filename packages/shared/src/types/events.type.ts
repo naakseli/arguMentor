@@ -1,4 +1,4 @@
-import type { Debate, DebateSide } from './debate.type.js'
+import type { Debate, DebateSide, TopicSideChoice } from './debate.type.js'
 
 // Client → Server Events
 export interface CreateDebatePayload {
@@ -9,6 +9,16 @@ export interface CreateDebatePayload {
 
 export interface JoinDebatePayload {
 	roomCode: string
+}
+
+export interface SelectTopicSidePayload {
+	roomCode: string
+	choice: TopicSideChoice
+}
+
+export interface SelectTopicSideResponse {
+	ok: boolean
+	message?: string
 }
 
 export interface GetDebateInfoPayload {
@@ -53,6 +63,10 @@ export interface ClientToServerEvents {
 	join_debate: (payload: JoinDebatePayload) => void
 	get_debate_info: (payload: GetDebateInfoPayload) => void
 	send_message: (payload: SendMessagePayload) => void
+	select_topic_side: (
+		payload: SelectTopicSidePayload,
+		callback: (response: SelectTopicSideResponse) => void
+	) => void
 	leave_debate: () => void
 }
 

@@ -5,6 +5,8 @@ import type {
 	DebateJoinedEvent,
 	DebateUpdateEvent,
 	ErrorEvent,
+	SelectTopicSideResponse,
+	TopicSideChoice,
 } from '@argumentor/shared'
 import type { DebateClientSocket } from './socketClient'
 import { ensureSocketConnected } from './socketClient'
@@ -83,6 +85,29 @@ export const debateSocketService = {
 			socket.once('error', (payload: ErrorEvent) => reject(new Error(payload.message)))
 
 			socket.emit('send_message', { content })
+		})
+	},
+
+	/**
+	 * Select topic side after joining
+	 */
+	async selectTopicSide(
+		socket: DebateClientSocket,
+		roomCode: string,
+		choice: TopicSideChoice
+	): Promise<void> {
+		await ensureSocketConnected(socket)
+
+		return new Promise<void>((resolve, reject) => {
+			socket.emit(
+				'select_topic_side',
+				{ roomCode, choice },
+				(response: SelectTopicSideResponse) => {
+					if (response?.ok) return resolve()
+
+					reject(new Error(response?.message ?? 'Puolen valinta epäonnistui'))
+				}
+			)
 		})
 	},
 

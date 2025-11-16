@@ -1,8 +1,10 @@
 import type { Debate } from '@argumentor/shared'
 import { DebateSide, DebateStatus } from '@argumentor/shared'
-import { Alert, Badge, Box, Card, Group, Stack, Text, Title } from '@mantine/core'
+import { Alert, Box, Card, Group, Stack, Text, Title } from '@mantine/core'
 import { IconInfoCircle } from '@tabler/icons-react'
 import { useTimer } from '../../hooks/useTimer'
+import useSideVariables from '../hooks/useSideVariables'
+import PerspectiveCard from './PerspectiveCards'
 
 interface DebateHeaderProps {
 	debate: Debate
@@ -10,38 +12,11 @@ interface DebateHeaderProps {
 }
 
 const DebateHeader = ({ debate, userSide }: DebateHeaderProps) => {
-	const getStatusBadge = () => {
-		switch (debate.status) {
-			case DebateStatus.ACTIVE:
-				return <Badge color='green'>Käynnissä</Badge>
-			case DebateStatus.ENDED:
-				return <Badge color='orange'>Päättynyt</Badge>
-			case DebateStatus.EVALUATED:
-				return <Badge color='blue'>Arvioitu</Badge>
-			default:
-				return null
-		}
-	}
-
-	const sideAVars = {
-		topic: debate.topicSideA,
-		argumentsRemaining: debate.argumentsRemainingA,
-		side: DebateSide.SIDE_A,
-		color: 'blue',
-	}
-	const sideBVars = {
-		topic: debate.topicSideB,
-		argumentsRemaining: debate.argumentsRemainingB,
-		side: DebateSide.SIDE_B,
-		color: 'green',
-	}
-
-	const userSideVars = userSide === DebateSide.SIDE_A ? sideAVars : sideBVars
-	const opponentSideVars = userSide === DebateSide.SIDE_A ? sideBVars : sideAVars
-
 	const isUserTurn = debate.currentTurn === userSide
 	const isActiveTurn = debate.status === DebateStatus.ACTIVE && debate.currentTurn !== null
 	const secondsRemaining = useTimer(debate.turnEndsAt, isActiveTurn)
+
+	const { perspectiveCards, userPerspective } = useSideVariables(debate, userSide)
 
 	return (
 		<Card withBorder radius='md' p='md'>
@@ -73,41 +48,30 @@ const DebateHeader = ({ debate, userSide }: DebateHeaderProps) => {
 					</Group>
 				)}
 
-				{/* Oma kanta + aihe */}
-				<Group justify='space-between' align='flex-start'>
-					<Box style={{ flex: 1 }}>
-						{userSide && (
-							<Alert
-								icon={<IconInfoCircle size={16} />}
-								color={userSideVars.color}
-								variant='light'
-								mb='xs'
-							>
-								<Text size='sm' fw={700}>
-									Sinun kantasi:{' '}
-									<Text span c={userSideVars.color} fw={700}>
-										{userSideVars.topic}
-									</Text>
-								</Text>
-							</Alert>
-						)}
-					</Box>
-					{getStatusBadge()}
+				<Group gap='md' align='stretch' grow>
+					{perspectiveCards.map(card => (
+						<PerspectiveCard key={card.side} card={card} />
+					))}
 				</Group>
 
-				{/* Arguments remaining */}
-				{userSide && (
-					<Group gap='md'>
-						<Badge variant='light' color={userSideVars.color} size='sm'>
-							Sinulla: {userSideVars.argumentsRemaining} argumenttia jäljellä
-						</Badge>
-						{opponentSideVars.topic && (
-							<Badge variant='light' color={opponentSideVars.color} size='sm'>
-								Vastustaja: {opponentSideVars.argumentsRemaining} argumenttia jäljellä
-							</Badge>
-						)}
-					</Group>
-				)}
+				{/* Oma kanta + aihe */}
+				<Box style={{ flex: 1 }}>
+					{userPerspective && (
+						<Alert
+							icon={<IconInfoCircle size={16} />}
+							color={userPerspective.color}
+							variant='light'
+							mb='xs'
+						>
+							<Text size='sm' fw={700}>
+								Sinä puolustat:{' '}
+								<Text span c={userPerspective.color} fw={700}>
+									{userPerspective.topic}
+								</Text>
+							</Text>
+						</Alert>
+					)}
+				</Box>
 			</Stack>
 		</Card>
 	)

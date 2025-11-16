@@ -3,6 +3,7 @@ import { handleCreateDebate } from './createDebate.js'
 import { handleGetDebateInfo } from './getDebateInfo.js'
 import { handleJoinDebate } from './joinDebate.js'
 import { handleLeaveDebate } from './leaveDebate.js'
+import { handleSelectTopicSide } from './selectTopicSide.js'
 import { handleSendMessage } from './sendMessage.js'
 
 export const setupSocketHandlers = (socket: DebateSocket): void => {
@@ -13,6 +14,10 @@ export const setupSocketHandlers = (socket: DebateSocket): void => {
 	socket.on('leave_debate', () => handleLeaveDebate(socket))
 
 	socket.on('get_debate_info', payload => handleGetDebateInfo(socket, payload))
+
+	socket.on('select_topic_side', (payload, callback) =>
+		handleSelectTopicSide(socket, payload, callback)
+	)
 
 	socket.on('send_message', payload => handleSendMessage(socket, payload))
 

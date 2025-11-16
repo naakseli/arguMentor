@@ -16,6 +16,7 @@ interface WaitingForOpponentProps {
 	topic: string
 	topicSideA: string
 	topicSideB: string
+	sideAName: string
 }
 
 const WaitingForOpponent = ({
@@ -23,6 +24,7 @@ const WaitingForOpponent = ({
 	topic,
 	topicSideA,
 	topicSideB,
+	sideAName,
 }: WaitingForOpponentProps) => {
 	return (
 		<Card withBorder radius='md' p='xl'>
@@ -70,6 +72,12 @@ const WaitingForOpponent = ({
 						<Text fw={600}>{topic}</Text>
 						<Text size='sm' c='dimmed'>
 							Puoli A: {topicSideA} • Puoli B: {topicSideB}
+						</Text>
+						<Text size='sm'>
+							Sinun näyttönimesi:{' '}
+							<Text span fw={600}>
+								{sideAName}
+							</Text>
 						</Text>
 					</Stack>
 				</Alert>

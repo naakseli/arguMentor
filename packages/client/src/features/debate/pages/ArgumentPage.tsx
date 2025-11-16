@@ -44,6 +44,7 @@ const ArgumentPage = () => {
 								topic={debate.topic}
 								topicSideA={debate.topicSideA}
 								topicSideB={debate.topicSideB}
+								sideAName={debate.sideAName}
 							/>
 						) : (
 							<DebateView debate={debate} userSide={userSide} />

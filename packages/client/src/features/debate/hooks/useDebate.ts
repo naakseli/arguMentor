@@ -1,4 +1,4 @@
-import type { Debate } from '@argumentor/shared'
+import type { Debate, TopicSideChoice } from '@argumentor/shared'
 import { useState } from 'react'
 import { useSocket } from '../../../providers/SocketProvider'
 import { debateSocketService } from '../../../services/debateSocketService'
@@ -6,6 +6,7 @@ import { debateSocketService } from '../../../services/debateSocketService'
 interface UseDebateResult {
 	createDebate: (topic: string, topicSideA: string, topicSideB: string) => Promise<string>
 	joinDebate: (roomCode: string) => Promise<string>
+	selectTopicSide: (roomCode: string, choice: TopicSideChoice) => Promise<void>
 	getDebateInfo: (roomCode: string) => Promise<Debate>
 	sendMessage: (content: string) => Promise<void>
 	isLoading: boolean
@@ -33,6 +34,9 @@ export const useDebate = (): UseDebateResult => {
 		return result
 	}
 
+	const selectTopicSide = async (roomCode: string, choice: TopicSideChoice) =>
+		debateSocketService.selectTopicSide(socket, roomCode, choice)
+
 	const getDebateInfo = async (roomCode: string) => {
 		const debate = await debateSocketService.getDebateInfo(socket, roomCode)
 		return debate
@@ -48,6 +52,7 @@ export const useDebate = (): UseDebateResult => {
 	return {
 		createDebate,
 		joinDebate,
+		selectTopicSide,
 		getDebateInfo,
 		sendMessage,
 		isLoading,
