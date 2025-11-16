@@ -38,7 +38,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }): JSX.Eleme
 			socket.off('connect_error', handleConnectError)
 			destroySocket()
 		}
-	}, [socket, clearUsername])
+	}, [socket])
 
 	return <SocketContext.Provider value={{ socket }}>{children}</SocketContext.Provider>
 }
