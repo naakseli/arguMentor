@@ -1,27 +1,44 @@
-import type { TopicSideChoice } from '@argumentor/shared'
+import type { Debate, TopicSideChoice } from '@argumentor/shared'
 import { Alert, Button, Card, Group, Stack, Text, Title } from '@mantine/core'
 import { IconInfoCircle } from '@tabler/icons-react'
+import { useState } from 'react'
+import { useDebate } from '../../hooks/useDebate'
 
 interface SideSelectionPromptProps {
 	topic: string
 	topicSideA: string
 	topicSideB: string
-	isSubmitting: boolean
-	error: string | null
-	onSelect: (choice: TopicSideChoice) => void
+	debate: Debate
 }
 
 const SideSelectionPrompt = ({
 	topic,
 	topicSideA,
 	topicSideB,
-	isSubmitting,
-	error,
-	onSelect,
+	debate,
 }: SideSelectionPromptProps) => {
 	const optionTexts: Record<TopicSideChoice, string> = {
 		A: topicSideA,
 		B: topicSideB,
+	}
+	const { selectTopicSide } = useDebate()
+	const [isSelectingSide, setIsSelectingSide] = useState(false)
+	const [selectionError, setSelectionError] = useState<string | null>(null)
+
+	const handleSideSelection = async (choice: TopicSideChoice) => {
+		if (!debate.roomCode || isSelectingSide) return
+
+		setSelectionError(null)
+		setIsSelectingSide(true)
+
+		try {
+			await selectTopicSide(debate.roomCode, choice)
+		} catch (error) {
+			console.error('Failed to select topic side', error)
+			setSelectionError('Puolen valinta epäonnistui. Yritä uudelleen.')
+		} finally {
+			setIsSelectingSide(false)
+		}
 	}
 
 	return (
@@ -42,17 +59,17 @@ const SideSelectionPrompt = ({
 							variant='light'
 							color={choice === 'A' ? 'blue' : 'green'}
 							fullWidth
-							onClick={() => onSelect(choice)}
-							loading={isSubmitting}
-							disabled={isSubmitting}
+							onClick={() => handleSideSelection(choice)}
+							loading={isSelectingSide}
+							disabled={isSelectingSide}
 						>
 							{optionTexts[choice]}
 						</Button>
 					))}
 				</Group>
-				{error && (
+				{selectionError && (
 					<Alert icon={<IconInfoCircle size={16} />} color='red' variant='light'>
-						{error}
+						{selectionError}
 					</Alert>
 				)}
 			</Stack>

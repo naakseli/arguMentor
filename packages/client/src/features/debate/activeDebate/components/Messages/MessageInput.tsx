@@ -1,3 +1,4 @@
+import { Debate, DebateSide } from '@argumentor/shared'
 import { Alert, Button, Card, Group, Stack, Text, Textarea } from '@mantine/core'
 import { IconInfoCircle, IconSend } from '@tabler/icons-react'
 import { useState } from 'react'
@@ -5,14 +6,18 @@ import { useDebate } from '../../../hooks/useDebate'
 
 interface MessageInputProps {
 	onMessageSent?: () => void
-	argumentsRemaining: number
-	isUserTurn: boolean
+	debate: Debate
+	userSide: DebateSide
 }
 
-const MessageInput = ({ onMessageSent, argumentsRemaining, isUserTurn }: MessageInputProps) => {
+const MessageInput = ({ onMessageSent, debate, userSide }: MessageInputProps) => {
 	const { sendMessage, isSending } = useDebate()
 	const [messageInput, setMessageInput] = useState('')
 	const [error, setError] = useState<string | null>(null)
+
+	const isUserTurn = debate.currentTurn === userSide
+	const argumentsRemaining =
+		userSide === DebateSide.SIDE_A ? debate.argumentsRemainingA : debate.argumentsRemainingB
 
 	const handleSendMessage = async () => {
 		if (!isUserTurn) return setError('Et voi lähettää viestiä, koska ei ole sinun vuorosi.')
