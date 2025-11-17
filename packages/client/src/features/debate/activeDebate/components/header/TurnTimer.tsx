@@ -1,14 +1,17 @@
 import type { DebateSide } from '@argumentor/shared'
 import { Group, Stack, Text } from '@mantine/core'
+import { useTimer } from '../../../hooks/useTimer'
 
 interface TurnTimerProps {
 	isActiveTurn: boolean
 	userSide: DebateSide | null
 	isUserTurn: boolean
-	secondsRemaining: number | null
+	turnEndsAt: string
 }
 
-const TurnTimer = ({ isActiveTurn, userSide, isUserTurn, secondsRemaining }: TurnTimerProps) => {
+const TurnTimer = ({ isActiveTurn, userSide, isUserTurn, turnEndsAt }: TurnTimerProps) => {
+	const secondsRemaining = useTimer(turnEndsAt, isActiveTurn)
+
 	if (!isActiveTurn || !userSide) {
 		return null
 	}

@@ -2,7 +2,6 @@ import type { Debate } from '@argumentor/shared'
 import { DebateSide, DebateStatus } from '@argumentor/shared'
 import { Alert, Box, Card, Group, Stack, Text, Title } from '@mantine/core'
 import { IconInfoCircle } from '@tabler/icons-react'
-import { useTimer } from '../../../hooks/useTimer'
 import useSideVariables from './hooks/useSideVariables'
 import PerspectiveCard from './PerspectiveCards'
 import TurnTimer from './TurnTimer'
@@ -15,7 +14,6 @@ interface DebateHeaderProps {
 const DebateHeader = ({ debate, userSide }: DebateHeaderProps) => {
 	const isUserTurn = debate.currentTurn === userSide
 	const isActiveTurn = debate.status === DebateStatus.ACTIVE && debate.currentTurn !== null
-	const secondsRemaining = useTimer(debate.turnEndsAt, isActiveTurn)
 
 	const { perspectiveCards, userPerspective } = useSideVariables(debate, userSide)
 
@@ -25,12 +23,14 @@ const DebateHeader = ({ debate, userSide }: DebateHeaderProps) => {
 				<Title order={4} mb='xs'>
 					{debate.topic}
 				</Title>
-				<TurnTimer
-					isActiveTurn={isActiveTurn}
-					userSide={userSide}
-					isUserTurn={isUserTurn}
-					secondsRemaining={secondsRemaining}
-				/>
+				{debate.turnEndsAt && (
+					<TurnTimer
+						isActiveTurn={isActiveTurn}
+						userSide={userSide}
+						isUserTurn={isUserTurn}
+						turnEndsAt={debate.turnEndsAt}
+					/>
+				)}
 
 				<Group gap='md' align='stretch' grow>
 					{perspectiveCards.map(card => (
