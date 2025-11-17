@@ -3,7 +3,7 @@ import { DebateSide, DebateStatus } from '@argumentor/shared'
 import { io } from '../socketServer.js'
 import * as debateService from './debateService.js'
 
-const TURN_DURATION_MS = 60_000
+export const TURN_DURATION_MS = 60_000
 
 const timers = new Map<string, NodeJS.Timeout>()
 
@@ -31,7 +31,7 @@ const hasNoArguments = (debate: Debate, side: DebateSide): boolean => {
 		: debate.argumentsRemainingB === 0
 }
 
-const applyTurnTimeoutToDebate = (debate: Debate): Debate => {
+export const applyTurnTimeoutToDebate = (debate: Debate): Debate => {
 	// Only process active debates
 	if (debate.status !== DebateStatus.ACTIVE) return debate
 

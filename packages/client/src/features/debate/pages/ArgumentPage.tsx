@@ -29,11 +29,6 @@ const ArgumentPage = () => {
 						Etusivulle
 					</Anchor>
 				</Group>
-				{isLoading && (
-					<Group justify='center' py='xl'>
-						<Loader />
-					</Group>
-				)}
 				{!isLoading && error && <Text c='red'>Virhe: {error}</Text>}
 				{!isLoading && !error && debate && (
 					<>
