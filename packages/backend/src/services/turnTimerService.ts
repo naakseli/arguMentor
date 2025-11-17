@@ -32,25 +32,21 @@ const hasNoArguments = (debate: Debate, side: DebateSide): boolean => {
 }
 
 const applyTurnTimeoutToDebate = (debate: Debate): Debate => {
-	// Only process active debates with current turn
-	if (debate.status !== DebateStatus.ACTIVE || debate.currentTurn == null) return debate
+	// Only process active debates
+	if (debate.status !== DebateStatus.ACTIVE) return debate
 
-	const updatedDebate = { ...debate }
-	const currentSide = updatedDebate.currentTurn as DebateSide
+	const updatedDebate: Debate = { ...debate }
+	const currentSide = updatedDebate.currentTurn
+
+	if (currentSide == null) return endDebate(updatedDebate)
 
 	// 1. Current side loses one argument
 	decrementArgument(updatedDebate, currentSide)
 
-	// 2. Check if debate should end due to no arguments
-	if (
-		hasNoArguments(updatedDebate, DebateSide.SIDE_A) &&
-		hasNoArguments(updatedDebate, DebateSide.SIDE_B)
-	) {
-		return endDebate(updatedDebate)
-	}
-
-	// 3. Switch to next side if they have arguments
+	// 2. Switch to next side if they have arguments
 	const nextSide = getNextSide(currentSide)
+
+	// 3. Check if debate should end due to no arguments
 	if (hasNoArguments(updatedDebate, nextSide)) return endDebate(updatedDebate)
 
 	// 4. Continue debate with new turn
