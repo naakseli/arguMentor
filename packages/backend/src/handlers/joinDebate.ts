@@ -10,7 +10,7 @@ export const handleJoinDebate = async (
 ): Promise<void> => {
 	try {
 		// Validate room code
-		if (!payload.roomCode || typeof payload.roomCode !== 'string') {
+		if (!payload.roomCode) {
 			emitSocketError(socket, 'INVALID_ROOM_CODE', 'Room code is required')
 			return
 		}

@@ -52,17 +52,7 @@ export const handleSendMessage = async (
 	}
 }
 
-type MessageApplicationResult = {
-	updatedDebate: Debate
-	message: DebateMessage
-	debateEnded: boolean
-}
-
-const addMessageAndAdvanceTurn = (
-	debate: Debate,
-	side: DebateSide,
-	content: string
-): MessageApplicationResult => {
+const addMessageAndAdvanceTurn = (debate: Debate, side: DebateSide, content: string) => {
 	const message: DebateMessage = {
 		id: randomUUID(),
 		side,

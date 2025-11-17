@@ -18,7 +18,7 @@ export const handleSelectTopicSide = async (
 			callback?.({ ok: false, message })
 		}
 
-		if (!roomCode || typeof roomCode !== 'string') {
+		if (!roomCode) {
 			respondError('INVALID_ROOM_CODE', 'Room code is required')
 			return
 		}
