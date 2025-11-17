@@ -5,6 +5,7 @@ import { IconInfoCircle } from '@tabler/icons-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import DebateEndedAlert from './components/DebateEndedAlert'
+import DebateStats from './components/DebateStats'
 import EvaluationDisplay from './components/EvaluationDisplay'
 import DebateHeader from './components/header/DebateHeader'
 import MessageInput from './components/Messages/MessageInput'
@@ -74,11 +75,14 @@ const DebateView = ({ debate, userSide }: DebateViewProps) => {
 
 			{debate.evaluation && (
 				<>
+					<DebateStats debate={debate} />
+
 					<EvaluationDisplay
 						evaluation={debate.evaluation}
 						sideAName={debate.sideAName}
 						sideBName={debate.sideBName ?? undefined}
 					/>
+
 					<Button onClick={() => navigate('/')}>Takaisin alkuun</Button>
 				</>
 			)}
