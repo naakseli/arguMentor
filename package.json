@@ -1,5 +1,5 @@
 {
-	"name": "instaAssignment",
+	"name": "argumentor",
 	"version": "1.0.0",
 	"packageManager": "pnpm@10.20.0",
 	"engines": {
@@ -9,7 +9,9 @@
 		"setup": "pnpm i && cd packages/backend && pnpm docker:up",
 		"run:backend": "cd packages/backend && pnpm dev",
 		"run:frontend": "cd packages/client && pnpm dev",
-		"TypeCheck": "pnpm --dir packages/backend exec tsc --noEmit --pretty && pnpm --dir packages/client exec tsc --noEmit --pretty"
+		"TypeCheck": "pnpm --dir packages/backend exec tsc --noEmit --pretty && pnpm --dir packages/client exec tsc --noEmit --pretty",
+		"DOCKER-TESTRUN:client": "docker build . --target argumentor-client --tag argumentor-client:test",
+		"DOCKER-TESTRUN:server": "docker build . --target argumentor-backend --tag argumentor-backend:test"
 	},
 	"devDependencies": {
 		"prettier": "^3.6.2"

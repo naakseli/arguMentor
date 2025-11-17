@@ -1,0 +1,10 @@
+node_modules
+packages/*/node_modules
+.pnpm-store
+.git
+.gitignore
+Dockerfile
+*.log
+dist
+packages/client/dist
+
