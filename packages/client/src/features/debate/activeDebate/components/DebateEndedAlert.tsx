@@ -1,10 +1,9 @@
-import { Alert, Text } from '@mantine/core'
-import { IconInfoCircle } from '@tabler/icons-react'
+import { Alert, Loader, Text } from '@mantine/core'
 
 const DebateEndedAlert = () => {
 	return (
 		<Alert
-			icon={<IconInfoCircle size={16} />}
+			icon={<Loader size='sm' color='orange' />}
 			title='Väittely päättynyt'
 			color='orange'
 			variant='light'
