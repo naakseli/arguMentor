@@ -34,7 +34,7 @@ const DebateHeader = ({ debate, userSide }: DebateHeaderProps) => {
 
 				<Group gap='md' align='stretch' grow>
 					{perspectiveCards.map(card => (
-						<PerspectiveCard key={card.side} card={card} />
+						<PerspectiveCard key={card.side} {...card} />
 					))}
 				</Group>
 
@@ -48,8 +48,9 @@ const DebateHeader = ({ debate, userSide }: DebateHeaderProps) => {
 							mb='xs'
 						>
 							<Text size='sm' fw={700}>
-								Sinä puolustat:{' '}
+								Sinun kantasi:
 								<Text span c={userPerspective.color} fw={700}>
+									{' '}
 									{userPerspective.topic}
 								</Text>
 							</Text>

@@ -1,8 +1,9 @@
 import type { Debate } from '@argumentor/shared'
 import { DebateSide, DebateStatus } from '@argumentor/shared'
-import { Alert, Stack } from '@mantine/core'
+import { Alert, Button, Stack } from '@mantine/core'
 import { IconInfoCircle } from '@tabler/icons-react'
 import { useState } from 'react'
+import { useNavigate } from 'react-router'
 import DebateEndedAlert from '../components/DebateEndedAlert'
 import EvaluationDisplay from './components/EvaluationDisplay'
 import DebateHeader from './components/header/DebateHeader'
@@ -17,6 +18,7 @@ interface DebateViewProps {
 
 const DebateView = ({ debate, userSide }: DebateViewProps) => {
 	const [scrollTrigger, setScrollTrigger] = useState(0)
+	const navigate = useNavigate()
 
 	const isDebateEnded =
 		debate.status === DebateStatus.ENDED || debate.status === DebateStatus.EVALUATED
@@ -60,7 +62,7 @@ const DebateView = ({ debate, userSide }: DebateViewProps) => {
 
 			{isDebateActive && <DebateHeader debate={debate} userSide={userSide} />}
 
-			{isDebateActive && (
+			{!isSelectingSides && (
 				<MessageList debate={debate} userSide={userSide} scrollTrigger={scrollTrigger} />
 			)}
 
@@ -71,11 +73,14 @@ const DebateView = ({ debate, userSide }: DebateViewProps) => {
 			{isDebateEnded && !debate.evaluation && <DebateEndedAlert />}
 
 			{debate.evaluation && (
-				<EvaluationDisplay
-					evaluation={debate.evaluation}
-					sideAName={debate.sideAName}
-					sideBName={debate.sideBName ?? undefined}
-				/>
+				<>
+					<EvaluationDisplay
+						evaluation={debate.evaluation}
+						sideAName={debate.sideAName}
+						sideBName={debate.sideBName ?? undefined}
+					/>
+					<Button onClick={() => navigate('/')}>Takaisin alkuun</Button>
+				</>
 			)}
 		</Stack>
 	)

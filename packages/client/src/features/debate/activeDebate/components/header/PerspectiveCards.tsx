@@ -3,7 +3,7 @@ import type { MantineColor } from '@mantine/core'
 import { Stack, Text } from '@mantine/core'
 import classes from './PerspectiveCards.module.css'
 
-export interface PerspectiveCardData {
+export interface PerspectiveCardProps {
 	side: DebateSide
 	name: string
 	topic: string | null
@@ -13,34 +13,33 @@ export interface PerspectiveCardData {
 	isHighlighted?: boolean
 }
 
-const formatRemainingMessages = (count?: number | null) => {
-	const safeCount = typeof count === 'number' ? count : 0
-	return safeCount === 1 ? '1 viesti jäljellä' : `${safeCount} viestiä jäljellä`
-}
-
-interface PerspectiveCardProps {
-	card: PerspectiveCardData
-}
-
-const PerspectiveCard = ({ card }: PerspectiveCardProps) => (
+const PerspectiveCard = ({
+	side,
+	name,
+	topic,
+	argumentsRemaining,
+	color,
+	label,
+	isHighlighted,
+}: PerspectiveCardProps) => (
 	<Stack
 		gap={0}
 		className={classes.card}
-		data-color={card.color}
-		data-highlighted={card.isHighlighted ? 'true' : 'false'}
+		data-color={color}
+		data-highlighted={isHighlighted ? 'true' : 'false'}
 	>
 		<Text size='xs' tt='uppercase' className={classes.cardHeader} ta='center'>
-			{card.label}
+			{label}
 		</Text>
 		<Stack gap={4} p='sm'>
-			<Text fw={700} c={card.color}>
-				{card.name}
+			<Text fw={700} c={color}>
+				{name}
 			</Text>
 			<Text size='sm' c='dimmed'>
-				Kanta: {card.topic}
+				Kanta: {topic}
 			</Text>
 			<Text size='sm' c='dimmed'>
-				{formatRemainingMessages(card.argumentsRemaining)}
+				{argumentsRemaining} argumentti(a) jäljellä
 			</Text>
 		</Stack>
 	</Stack>
