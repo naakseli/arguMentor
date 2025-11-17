@@ -1,5 +1,5 @@
 import type { JoinDebatePayload } from '@argumentor/shared'
-import { DebateSide } from '@argumentor/shared'
+import { DebateSide, DebateStatus } from '@argumentor/shared'
 import * as debateService from '../services/debateService.js'
 import type { DebateSocket } from '../types/socket.js'
 import { emitSocketError, handleSocketHandlerError } from '../utils/socketError.js'
@@ -36,6 +36,7 @@ export const handleJoinDebate = async (
 
 		debate.sideBJoined = true
 		debate.sideBName = socket.data.username
+		debate.status = DebateStatus.SIDE_SELECTION
 
 		const side = DebateSide.SIDE_B
 

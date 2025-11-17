@@ -21,13 +21,14 @@ const DebateView = ({ debate, userSide }: DebateViewProps) => {
 	const isDebateEnded =
 		debate.status === DebateStatus.ENDED || debate.status === DebateStatus.EVALUATED
 	const isDebateActive = debate.status === DebateStatus.ACTIVE
-	const isSidesSelected = debate.sideAJoined && debate.sideBJoined
+	const isSelectingSides = debate.status === DebateStatus.SIDE_SELECTION
+	const isWaitingForOpponent = debate.status === DebateStatus.WAITING
 
 	const handleMessageSent = () => setScrollTrigger(prev => prev + 1)
 
 	return (
 		<Stack gap='md'>
-			{!isSidesSelected && userSide === DebateSide.SIDE_B && (
+			{isSelectingSides && userSide === DebateSide.SIDE_B && (
 				<SideSelectionPrompt
 					topic={debate.topic}
 					topicSideA={debate.topicSideA}
@@ -35,7 +36,7 @@ const DebateView = ({ debate, userSide }: DebateViewProps) => {
 					debate={debate}
 				/>
 			)}
-			{!isSidesSelected && userSide === DebateSide.SIDE_A && (
+			{isSelectingSides && userSide === DebateSide.SIDE_A && (
 				<Alert
 					icon={<IconInfoCircle size={16} />}
 					color='blue'
@@ -45,10 +46,21 @@ const DebateView = ({ debate, userSide }: DebateViewProps) => {
 					Vastustaja valitsee parhaillaan puoltaan. Väittely alkaa heti, kun valinta on tehty.
 				</Alert>
 			)}
+			{isWaitingForOpponent && userSide === DebateSide.SIDE_A && (
+				<Alert
+					icon={<IconInfoCircle size={16} />}
+					color='blue'
+					variant='light'
+					title='Odotetaan vastustajaa'
+				>
+					Vastustaja ei ole vielä liittynyt väittelyyn. Jaamme puolen valinnan heti, kun hän on
+					paikalla.
+				</Alert>
+			)}
 
-			{isSidesSelected && <DebateHeader debate={debate} userSide={userSide} />}
+			{isDebateActive && <DebateHeader debate={debate} userSide={userSide} />}
 
-			{isSidesSelected && (
+			{isDebateActive && (
 				<MessageList debate={debate} userSide={userSide} scrollTrigger={scrollTrigger} />
 			)}
 

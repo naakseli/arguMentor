@@ -3,6 +3,7 @@ import type { Message } from './message.type.js'
 
 export enum DebateStatus {
 	WAITING = 'WAITING', // Odottaa toista osallistujaa
+	SIDE_SELECTION = 'SIDE_SELECTION', // Molemmat paikalla, valitaan puolet
 	ACTIVE = 'ACTIVE', // Väittely käynnissä
 	ENDED = 'ENDED', // Väittely päättynyt (kaikki argumentit käytetty)
 	EVALUATED = 'EVALUATED', // AI on arvioinut
